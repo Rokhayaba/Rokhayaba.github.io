@@ -48,6 +48,7 @@ import org.broad.tribble.readers.TabixReader;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -57,23 +58,49 @@ import java.util.concurrent.*;
 
 
 public class FerretData extends SwingWorker<Integer, String> {
-	private static final int MYTHREADS = 200;
-	String geneSymbol;
-    String geneId;
-    String proteinPos;
-    String proteinAcc;
-    String fxnName;
-    String aa1;
-    String aa2;
-    String protein_end;
-    String sift_score;
-    String sift_score1;
-    String polyphen_score;
-    String polyphen_score1;
-    String sift_prediction;
-    String sift_prediction1;
-    String polyphen_prediction;
-    String polyphen_prediction1;
+	private static final int MYTHREADS = 30;
+	private static BufferedReader br;
+	private static BufferedReader brvep;
+	private static String Varid = null;
+	BufferedWriter mapWrite, infoWrite, pedWrite, frqWrite;
+    boolean fileEmpty, frqFileEmpty;
+    int index;
+    int espErrorCount;
+    String s;
+    String[][] genotypes;
+    LinkedList<EspInfoObj> espData;
+//	private static String geneSymbol = null;
+//	private static String geneId = null;
+//	private static String proteinPos = null;
+//	private static String proteinAcc = null;
+//	private static String fxnName = null;
+//	private static String aa1 = null;
+//	private static String aa2 = null;
+//	private static String protein_end = null;
+//	private static String sift_score = null;
+//	private static String sift_score1 = null;
+//	private static String polyphen_score = null;
+//	private static String polyphen_score1 = null;
+//	private static String sift_prediction = null;
+//	private static String sift_prediction1 = null;
+//	private static String polyphen_prediction = null;
+//	private static String polyphen_prediction1 = null;
+//	String geneSymbol;
+//    String geneId;
+//    String proteinPos;
+//    String proteinAcc;
+//    String fxnName;
+//    String aa1;
+//    String aa2;
+//    String protein_end;
+//    String sift_score;
+//    String sift_score1;
+//    String polyphen_score;
+//    String polyphen_score1;
+//    String sift_prediction;
+//    String sift_prediction1;
+//    String polyphen_prediction;
+//    String polyphen_prediction1;
 //	String geneSymbol = null;
 //    String geneId = null;
 //    String proteinPos = null;
@@ -90,11 +117,31 @@ public class FerretData extends SwingWorker<Integer, String> {
 //    String sift_prediction1 = null;
 //    String polyphen_prediction = null;
 //    String polyphen_prediction1 = null;
+	private static String geneSymbol;
+	private static String geneId;
+	private static String proteinPos;
+	private static String proteinAcc;
+	private static String fxnName;
+	private static String aa1;
+	private static String aa2;
+	private static String protein_end;
+	private static String sift_score;
+	private static String sift_score1;
+	private static String polyphen_score;
+	private static String polyphen_score1;
+	private static String sift_prediction;
+	private static String sift_prediction1;
+	private static String polyphen_prediction;
+	private static String polyphen_prediction1;
+	private static URL urlLocation;
+	private static URL urlvep;
+	private static Runnable worker;
+	
     boolean passee;
     boolean passee1;
-    BufferedReader br;
-    BufferedReader brvep;
-    ExecutorService executor = Executors.newFixedThreadPool(MYTHREADS);
+    ThreadPoolExecutor  executor= new ThreadPoolExecutor(300,300,500, TimeUnit.MILLISECONDS,
+   		 new LinkedBlockingQueue<Runnable>(), new ThreadPoolExecutor.CallerRunsPolicy());
+    //ExecutorService executor = Executors.newFixedThreadPool(MYTHREADS);
     //private GUI gui = new GUI();
     //private DownloadTheDataModel model = new DownloadTheDataModel();
 	
@@ -385,7 +432,7 @@ public class FerretData extends SwingWorker<Integer, String> {
         ArrayList<String> peopleOfInterest = new ArrayList<>();
         int variantCounter = 0;
         int peopleCounter = 0;
-        String[][] genotypes = null;
+        genotypes = null;
 
         ArrayList<InputRegion> sortedQueries = sortByWindow(queries);
         String webAddress = ftpAddress.replace('$', '1');
@@ -444,7 +491,7 @@ public class FerretData extends SwingWorker<Integer, String> {
         }
 
         publish("Downloading Data from 1000 Genomes...");
-        String s;
+        //String s;
         long startTime = 0;
         Integer tempInt = null;
 
@@ -603,7 +650,8 @@ public class FerretData extends SwingWorker<Integer, String> {
             }
             // end VCF writing
 
-            LinkedList<EspInfoObj> espData = null;
+            //LinkedList<EspInfoObj> espData = null;
+             espData = null;
             if (retrieveESP) {
                 publish("Downloading Data from Exome Sequencing Project...");
                 espData = FerretData.exomeSequencingProject(sortedQueries);
@@ -615,7 +663,9 @@ public class FerretData extends SwingWorker<Integer, String> {
             }
 
             publish("Outputting files...");
+            //Runnable worker = new CallerRunsPolicyDemo ().new  MyRunnable(urlLocation,urlvep) { @Override public void run() {
             try {
+            	//Runnable worker = new CallerRunsPolicyDemo ().new  MyRunnable(urlLocation,urlvep) { @Override public void run() {
                 // Creating lookup HashMap for family info, etc.
                 HashMap<String, String[]> familyInfo = new HashMap<>(5000);
                 BufferedReader familyInfoRead = new BufferedReader(new InputStreamReader(FerretData.class.getClassLoader().getResourceAsStream("family_info.txt")));
@@ -629,9 +679,11 @@ public class FerretData extends SwingWorker<Integer, String> {
                 
            
 
-                BufferedWriter mapWrite = null, infoWrite = null, pedWrite = null, frqWrite = null;
-                boolean fileEmpty = true, frqFileEmpty = true;
+//                BufferedWriter mapWrite = null, infoWrite = null, pedWrite = null, frqWrite = null;
+//                boolean fileEmpty = true, frqFileEmpty = true;
                 
+                mapWrite = null; infoWrite = null; pedWrite = null; frqWrite = null;
+                fileEmpty = true; frqFileEmpty = true;
                 
 
                 if (outputFiles == "all") {
@@ -686,71 +738,78 @@ public class FerretData extends SwingWorker<Integer, String> {
                     }
                 }
 
-                int index = 0;
-                int espErrorCount = 0;
-                String[] Varid = null;
-//                geneSymbol = null;
-//                geneId = null;
-//                proteinPos = null;
-//                proteinAcc = null;
-//                fxnName = null;
-//                //String [] mrnaAcc = null;
-//                aa1 = null;
-//                aa2= null;
-//                protein_end = null;
-//                sift_score = null;
-//                sift_score1 = null;
-//                polyphen_score = null;
-//                polyphen_score1 = null;
-//                sift_prediction = null;
-//                sift_prediction1 = null;
-//                polyphen_prediction = null;
-//                polyphen_prediction1 = null;
-                
+                //int index = 0;
+                index = 0;
+                //int espErrorCount = 0;
+                espErrorCount = 0;
+
                 //ExecutorService executorvep = Executors.newFixedThreadPool(MYTHREADS);
-             
+                
+              
                 while ((s = vcfRead.readLine()) != null) {
+
+
+                	
+                		//try{
                     String[] text = s.split("\t");
-                  
+                    //System.out.print("cptwhile"+ cptwhile);
+                  //cptwhile ++;
+
 /* text[2] contains all the rsid for a gene, a locus or variants inputted by the user*/
+
                     System.out.print("\t text" + text[2]);
+                    geneSymbol = "grosse";
+                    geneId = null;
+                    proteinPos = null;
+                    proteinAcc = null;
+                    fxnName = null;
+                    //String [] mrnaAcc = null;
+                    aa1 = null;
+                    aa2= null;
+                    protein_end = null;
+                    sift_score = null;
+                    sift_score1 = null;
+                    polyphen_score = null;
+                    polyphen_score1 = null;
+                    sift_prediction = null;
+                    sift_prediction1 = null;
+                    polyphen_prediction = null;
+                    polyphen_prediction1 = null; 
+                	passee = false;
+                	passee1 = false;
                    
-                    
-                  Varid = text[2].split(",");
-//                    br = null;
-//                    brvep = null;
-                    
+                 Varid = text[2].substring(2);
+       
+                 worker = new CallerRunsPolicyDemo ().new  MyRunnable(urlLocation,urlvep) { @Override public void run() {
+                     //for (int i = 0; i < Varid.length; i++) {
+
                    try {
-                        for (int i = 0; i < Varid.length; i++) {
-                        	passee = false;
-                        	passee1 = false;
-                  
-                        	System.out.println("\tCe qu'il y'a dans varid\t" + Varid[i].substring(2));
-                            URL urlLocation = new URL("https://www.ncbi.nlm.nih.gov/projects/SNP/snp_gene.cgi?connect=&rs=" + Varid[i].substring(2));
+                        	System.out.println("\tCe qu'il y'a dans varid\t" + Varid);
+                            URL urlLocation = new URL("https://www.ncbi.nlm.nih.gov/projects/SNP/snp_gene.cgi?connect=&rs=" + Varid);
                             String server = "https://rest.ensembl.org";
-                		    String ext = "/vep/human/id/rs" + Varid[i].substring(2)+ "?content-type=application/json";
+                		    String ext = "/vep/human/id/rs" + Varid+ "?content-type=application/json";
                 		    URL urlvep = new URL(server + ext);
-                		 
+
+                		    br = null;
+                		    brvep = null;
                 		    URLConnection connection = urlvep.openConnection();
                 		    HttpURLConnection httpConnection = (HttpURLConnection)connection;
+                   		
                 		    httpConnection.setRequestProperty("Content-Type", "application/json");
-                		    Runnable worker = new MyRunnable(urlLocation) { @Override public void run() {
-							
-                		   
-                		    //
+                		    
+
+                		    //worker = new CallerRunsPolicyDemo ().new  MyRunnable(urlLocation,urlvep) { @Override public void run() {
+                		    	
                 		    try{
-                            br = new BufferedReader(new InputStreamReader(urlLocation.openStream()));
-                            brvep = new BufferedReader(new InputStreamReader(urlvep.openStream()));
-                           
+                		    	
+                		    	br = new BufferedReader(new InputStreamReader(urlLocation.openStream()));
+       
+                            
                             String currentString;
-                            //String currentString1;
-                                //while ((currentString = br.readLine()) != null && !currentString.contains("\"GRCh37.p13\" : [")) {
-                                	 
-                                //&& currentString.contains("\"GRCh38.p7\" : [")}
-                             
+
                                 while ((currentString = br.readLine()) != null  && !currentString.contains("\"mrnaAcc\" : ")) 
                                 {
-                                	//System.out.print(currentString);
+                                	//System.out.print("currentString\t" + currentString);
                                     if (currentString.contains("\"geneSymbol\"")) {
                                     	geneSymbol = currentString.substring(currentString.indexOf(" : \"") + 4, currentString.indexOf("\","));
                                     	System.out.print("\tgeneSymbol" + geneSymbol);
@@ -811,9 +870,7 @@ public class FerretData extends SwingWorker<Integer, String> {
                                     		aa1 = ".";
                                          	//aaCode = None;
                                          }
-                                    	//test.add(currentString.substring(currentString.indexOf(" : \"") + 4, currentString.indexOf("\",")));
-                                    	//System.out.print("\taaCode" + test);
-                                    	//cpt = cpt++;
+                                    	
                                     	passee1 = true;
                                     }
                                     if (currentString.contains("\"aaCode\"") && passee1 == true) {
@@ -844,149 +901,113 @@ public class FerretData extends SwingWorker<Integer, String> {
                                     	
                                     }
                                 }
-                              //br.close(); 
-                		    
-                		    } catch (Exception e2) {
-                       	     e2.printStackTrace();
-                             }
-              		    }};  
-                        	  executor.execute(worker);
-                            
-                        	   
-                		   
-                            
-                                
-                                
-                                
-                    		    //Runnable workervep = new MyRunnable(urlvep);
-                    		    //executorvep.execute(workervep);
-                    		    
-                    		    
+                                System.out.print("\tgeneSymbol à la sortie du while ncbi" + geneSymbol);
+                              //br.close();
+
+//             	           ***********ICI COMMENCE L'EXTRACTION VEP*************
+             	           
                                 System.out.println("****** Content of the URL ********");			
                          	   JSONParser parser = new JSONParser();
                          	   String input;
-                         				
-                         	   while ((input = brvep.readLine()) != null){
-                         		 //System.out.println("input" + input);
-                         		 
-                         		 JSONArray array = (JSONArray) parser.parse(input);
-                         		 JSONObject JO = (JSONObject) array.get(0);
-                         		   JSONArray transcript_consequences = (JSONArray)JO.get("transcript_consequences");
+                         	
 
-                                    for(Object obj: transcript_consequences){
-                                 	   JSONObject object = (JSONObject) obj;
-                                 	   protein_end = String.valueOf(object.get("protein_end"));
-                                 	 if ((!(protein_end.equals("null")) && protein_end.equals(proteinPos)))
-                                 	 {
-                                 		 System.out.println("Je rentre dans le if");
-                                 	System.out.println("protein_end: " + protein_end);
-                                 	System.out.println(obj);
-                                 sift_score1 = String.valueOf(object.get("sift_score"));
-                                 
-                                 System.out.println("sift_score1: " + sift_score1);
-                                 if(!(sift_score1.equals("null"))){
-                                	 sift_score = sift_score1;
-                                 System.out.println("sift_score: " + sift_score);
-                                 }
-                                 if((sift_score1.equals("null"))){
-                                    	 sift_score = ".";
-                                     System.out.println("sift_scorep: " + sift_score);
-                                     }
-                                 
-                                 polyphen_score1 = String.valueOf(object.get("polyphen_score"));
-                                 System.out.println("polyphen_score1: " + polyphen_score1);
-                                 
-                                 if(!(polyphen_score1.equals("null"))){
-                                 polyphen_score = polyphen_score1;
-                                 System.out.println("polyphen_score: " + polyphen_score);
-                                 
-                                 }
-                                 if((polyphen_score1.equals("null"))){
-                                     polyphen_score = ".";
-                                     System.out.println("polyphen_scorep: " + polyphen_score);
-                                     }
-                                 
+                         		  brvep = new BufferedReader(new InputStreamReader(urlvep.openStream()));
+								while ((input = brvep.readLine()) != null){
+									   //System.out.println("brvepin" + brvep);
+									  //System.out.println("brin" + br);
+									 //System.out.println("input\t" + input);
+									 
+									 JSONArray array = (JSONArray) parser.parse(input);
+									 JSONObject JO = (JSONObject) array.get(0);
+									   JSONArray transcript_consequences = (JSONArray)JO.get("transcript_consequences");
 
-                                 sift_prediction1 = String.valueOf(object.get("sift_prediction"));
-                                 System.out.println("sift_prediction1: " + sift_prediction1);
-                                 if (!(sift_prediction1.equals("null")))
-                                 {
-                                	 sift_prediction = sift_prediction1;
-                                	 System.out.println("sift_prediction: " + sift_prediction);
-                                 }
-                                 if ((sift_score1.equals("null")))
-                                 {
-                                	 sift_prediction = ".";
-                                	 System.out.println("sift_predictionp: " + sift_prediction);
-                                 }
-                                 
-                                 polyphen_prediction1 = String.valueOf(object.get("polyphen_prediction"));
-                                 System.out.println("polyphen_prediction1: " + polyphen_prediction1);
-                                 if (!(polyphen_prediction1.equals("null")))
-                                 {
-                                	 polyphen_prediction = polyphen_prediction1;
-                                	 System.out.println("polyphen_prediction: " + polyphen_prediction);
-                                 }
-                                 if ((polyphen_prediction1.equals("null")))
-                                 {
-                                	 polyphen_prediction = ".";
-                                	 System.out.println("polyphen_predictionp: " + polyphen_prediction);
-                                 }
-                                 	 } 
-                                     
-                                    }
-//                                    if(protein_end == null || protPos == null|| sift_score1 == null || sift_score == null || polyphen_score == null || polyphen_score1 == null || sift_prediction == null || sift_prediction1 == null || polyphen_prediction == null || polyphen_prediction1 == null )
-                                  //if(sift_score == null || polyphen_score == null || sift_prediction == null || polyphen_prediction == null)
-                                    if(proteinPos.equals("."))
-                                    
-                                    {
-                                	  System.out.println("On rentre dans un if protend = null");
-                                    	sift_score = ".";
-                                    	polyphen_score = ".";
-                                    	sift_prediction = ".";
-                                    	polyphen_prediction = ".";
-                                    }
-                         		 
-                         	   }
-                         	  
-                                
+								        for(Object obj: transcript_consequences){
+								     	   JSONObject object = (JSONObject) obj;
+								     	   protein_end = String.valueOf(object.get("protein_end"));
+								     	 if ((!(protein_end.equals("null")) && protein_end.equals(proteinPos)))
+								     	 {
+								     		 System.out.println("Je rentre dans le if vep");
+								     	System.out.println("protein_end: " + protein_end);
+								     	System.out.println(obj);
+								     sift_score1 = String.valueOf(object.get("sift_score"));
+								     
+								     System.out.println("sift_score1: " + sift_score1);
+								     if(!(sift_score1.equals("null"))){
+								    	 sift_score = sift_score1;
+								     System.out.println("sift_score: " + sift_score);
+								     }
+								     if((sift_score1.equals("null"))){
+								        	 sift_score = ".";
+								         System.out.println("sift_scorep: " + sift_score);
+								         }
+								     
+								     polyphen_score1 = String.valueOf(object.get("polyphen_score"));
+								     System.out.println("polyphen_score1: " + polyphen_score1);
+								     
+								     if(!(polyphen_score1.equals("null"))){
+								     polyphen_score = polyphen_score1;
+								     System.out.println("polyphen_score: " + polyphen_score);
+								     
+								     }
+								     if((polyphen_score1.equals("null"))){
+								         polyphen_score = ".";
+								         System.out.println("polyphen_scorep: " + polyphen_score);
+								         }
+								     
+
+								     sift_prediction1 = String.valueOf(object.get("sift_prediction"));
+								     System.out.println("sift_prediction1: " + sift_prediction1);
+								     if (!(sift_prediction1.equals("null")))
+								     {
+								    	 sift_prediction = sift_prediction1;
+								    	 System.out.println("sift_prediction: " + sift_prediction);
+								     }
+								     if ((sift_score1.equals("null")))
+								     {
+								    	 sift_prediction = ".";
+								    	 System.out.println("sift_predictionp: " + sift_prediction);
+								     }
+								     
+								     polyphen_prediction1 = String.valueOf(object.get("polyphen_prediction"));
+								     System.out.println("polyphen_prediction1: " + polyphen_prediction1);
+								     if (!(polyphen_prediction1.equals("null")))
+								     {
+								    	 polyphen_prediction = polyphen_prediction1;
+								    	 System.out.println("polyphen_prediction: " + polyphen_prediction);
+								     }
+								     if ((polyphen_prediction1.equals("null")))
+								     {
+								    	 polyphen_prediction = ".";
+								    	 System.out.println("polyphen_predictionp: " + polyphen_prediction);
+								     }
+								     	 } 
+								         
+								        }
+								        
+								        if(proteinPos.equals("."))
+								        
+								        {
+								    	  System.out.println("On rentre dans un if protend = .");
+								        	sift_score = ".";
+								        	polyphen_score = ".";
+								        	sift_prediction = ".";
+								        	polyphen_prediction = ".";
+								        }
+									 
+								   }
+								//br.close();
+								//brvep.close();
+						
+                		    
 //                                while ((currentString1 = br1.readLine()) != null) 
 //                                {
 //                                	System.out.println(currentString1);
 //                                	   if (currentString1.contains("\"mrnaAcc\"")) {
 //                                       	mrnaAcc = currentString1.substring(currentString1.indexOf(" : \"") + 4, currentString1.indexOf("\",")).split("\t");
 //                                       	System.out.print("\tmrnaAcc" + mrnaAcc[0]);
-//                                       
-//                                   }
-//                                };
-                        
-                         	   
-                		    
-                        }
-//                        executor.shutdown();
-//                    	// Wait until all threads are finish
-//                    	while (!executor.isTerminated()) {
-//
-//                    	}
-//                    	System.out.println("\nFinished all threads");
-                        
-                       
-                        //executor.shutdown();
-//                        executorvep.shutdown();
-//                		// Wait until all threads are finish
-                        
-                		
-//                		while (!executorvep.isTerminated()) {
-//                            
-//                		}
-//                		System.out.println("\nFinished all threads of vep");
-                       
-                        
-                        
-                   }catch (Exception e2) {
-              	     e2.printStackTrace();
-                    }
-                   
+ 
+
+
                     String[] variantPossibilities;
                     String[] multAllele = text[4].split(",");
                     int[] variantFreq = {0, 0};
@@ -1147,7 +1168,30 @@ public class FerretData extends SwingWorker<Integer, String> {
                             }
                         }
                     }
+                    
+                			} catch (IOException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+								}catch (Exception e2) {
+				              	     e2.printStackTrace();
+			                    }
+                    
+                		 } catch (IOException e) {
+                         }
+                    
+                  }
+                	
+               };                         	   
+       	 executor.execute(worker);   
+   
                 }
+                executor.shutdown();
+              	// Wait until all threads are finish
+              	while (!executor.isTerminated()) {
+      
+              	}
+              	System.out.println("\nFinished all threads");
+              	
                 // this bracket marks the end of VCF reading
                 // Don't need to have MAF threshold here, because not written to genotypes array if MAF too low
                 if (outputFiles == "all") {
@@ -1172,7 +1216,10 @@ public class FerretData extends SwingWorker<Integer, String> {
                         new File(fileName + ".info").delete();
                         new File(fileName + ".map").delete();
                     }
+   
                 }
+
+                
                 frqWrite.close();
                 vcfRead.close();
                 File vcfFile = new File(fileName + "_genotypes.vcf");
@@ -1181,14 +1228,18 @@ public class FerretData extends SwingWorker<Integer, String> {
                     freqFile.delete();
                     return -3;
                 }
-            } catch (IOException e) {
-                return -1;
             }
+            catch (IOException e) {
+                return -1;
+            }       
+
+
             
             
             //model.mergeFiles(gui);
             setProgress(100);
             System.out.println("Finished");
+            
         }
         if (usehaplo) {
            
@@ -1200,8 +1251,7 @@ public class FerretData extends SwingWorker<Integer, String> {
             } catch (IOException e) {
             }
         }
-        return 1;
-        
+        return 1;   
     }
 
      
