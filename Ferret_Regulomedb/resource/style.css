@@ -1,0 +1,70 @@
+            * {
+                font-family: Verdana;
+                font-size: 95%;
+                margin: 0;
+                padding: 0;
+            }
+            
+            table {
+                border: 2px solid black;
+                border-collapse: collapse;
+                margin-top: 1%;
+                margin-left: 2%;
+                min-width: auto;
+                white-space: nowrap;
+                overflow-x: scroll;
+            }
+            
+            tr:hover{
+                background-color: #eaeaea;
+            }
+            
+            tr:nth-child(even) {
+                background-color: #f5f5f5;
+            }
+            
+            td,th {
+                border: 1px solid #bbb;
+                text-align: center;
+                height: 30px;
+                padding: 15px;
+            }
+                        
+            th {
+                background-color: rgb(43,120,29);
+                color: white;
+            }
+            
+            caption {
+                margin-bottom: 4%;
+                font-size: 250%;
+                font-weight: bold;
+            }
+            
+            [class="1a"], [class="1b"], [class="1c"], [class="1d"], [class="1e"], [class="1f"] {
+                background-color: rgba(255,0,0,0.3);
+            }
+            
+            [class="2a"], [class="2b"], [class="2c"] {
+                background-color: rgba(255,127,0,0.3);
+            }
+            
+            [class="3a"], [class="3b"] {
+                background-color: rgba(255,255,0,0.3);
+            }
+            
+            [class="4"] {
+                background-color: rgba(100,255,0,0.3);             
+            }
+            
+            [class="5"] {
+                background-color: rgba(50,255,0,0.3);
+            }
+            
+            [class="6"] {
+                background-color: rgba(0,255,0,0.3);
+            }
+            
+            [class="7"] {
+                background-color: rgba(180,180,180,0.3);
+            }

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry excluding="resource/|resource/|resource/" kind="src" path="src"/>
+	<classpathentry kind="src" path="test"/>
+	<classpathentry kind="src" path="resource"/>
+	<classpathentry exported="true" kind="lib" path="Haploview.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/CopyLibs/org-netbeans-modules-java-j2seproject-copylibstask.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/hamcrest/hamcrest-core-1.3.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/junit_4/junit-4.12-javadoc.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/junit_4/junit-4.12-sources.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/junit_4/junit-4.12.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/junit-4.12.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/picard-1.86p.jar"/>
+	<classpathentry exported="true" kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry exported="true" kind="lib" path="lib/postgresql-42.2.2.jar"/>
+	<classpathentry exported="true" kind="lib" path="C:/Users/e300264/Downloads/javax.json-api-1.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="C:/Users/e300264/Downloads/json-simple-1.1.jar/json-simple-1.1.jar"/>
+	<classpathentry kind="lib" path="lib/htmlunit-2.31/lib/commons-codec-1.10.jar"/>
+	<classpathentry kind="lib" path="lib/htmlunit-2.31/lib/commons-io-2.6.jar"/>
+	<classpathentry kind="lib" path="lib/htmlunit-2.31/lib/commons-lang3-3.7.jar"/>
+	<classpathentry kind="lib" path="lib/htmlunit-2.31/lib/commons-logging-1.2.jar"/>
+	<classpathentry kind="lib" path="lib/htmlunit-2.31/lib/commons-net-3.6.jar"/>
+	<classpathentry kind="lib" path="lib/htmlunit-2.31/lib/commons-text-1.3.jar"/>
+	<classpathentry kind="lib" path="lib/htmlunit-2.31/lib/htmlunit-2.31.jar"/>
+	<classpathentry kind="lib" path="lib/htmlunit-2.31/lib/htmlunit-core-js-2.31.jar"/>
+	<classpathentry kind="lib" path="lib/htmlunit-2.31/lib/htmlunit-cssparser-1.0.0.jar"/>
+	<classpathentry kind="lib" path="lib/htmlunit-2.31/lib/httpclient-4.5.5.jar"/>
+	<classpathentry kind="lib" path="lib/htmlunit-2.31/lib/httpcore-4.4.9.jar"/>
+	<classpathentry kind="lib" path="lib/htmlunit-2.31/lib/httpmime-4.5.5.jar"/>
+	<classpathentry kind="lib" path="lib/htmlunit-2.31/lib/jetty-client-9.4.10.v20180503.jar"/>
+	<classpathentry kind="lib" path="lib/htmlunit-2.31/lib/jetty-http-9.4.10.v20180503.jar"/>
+	<classpathentry kind="lib" path="lib/htmlunit-2.31/lib/jetty-io-9.4.10.v20180503.jar"/>
+	<classpathentry kind="lib" path="lib/htmlunit-2.31/lib/jetty-util-9.4.10.v20180503.jar"/>
+	<classpathentry kind="lib" path="lib/htmlunit-2.31/lib/jetty-xml-9.4.10.v20180503.jar"/>
+	<classpathentry kind="lib" path="lib/htmlunit-2.31/lib/neko-htmlunit-2.31.jar"/>
+	<classpathentry kind="lib" path="lib/htmlunit-2.31/lib/serializer-2.7.2.jar"/>
+	<classpathentry kind="lib" path="lib/htmlunit-2.31/lib/websocket-api-9.4.10.v20180503.jar"/>
+	<classpathentry kind="lib" path="lib/htmlunit-2.31/lib/websocket-client-9.4.10.v20180503.jar"/>
+	<classpathentry kind="lib" path="lib/htmlunit-2.31/lib/websocket-common-9.4.10.v20180503.jar"/>
+	<classpathentry kind="lib" path="lib/htmlunit-2.31/lib/xalan-2.7.2.jar"/>
+	<classpathentry kind="lib" path="lib/htmlunit-2.31/lib/xercesImpl-2.11.0.jar"/>
+	<classpathentry kind="lib" path="lib/htmlunit-2.31/lib/xml-apis-1.4.01.jar"/>
+	<classpathentry kind="lib" path="postgresql-42.2.5.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
