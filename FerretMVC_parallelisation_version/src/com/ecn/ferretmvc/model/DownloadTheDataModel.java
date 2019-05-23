@@ -109,11 +109,11 @@ public class DownloadTheDataModel extends Observable {
 	    	
 	    	// Connecting into the Database
 	      Class.forName("org.postgresql.Driver");
-	      String url = "jdbc:postgresql://localhost:5432/HLA_data";
-
+	      String url = "jdbc:postgresql://localhost:5432/Ferret_data";
+	     //String url = "jdbc:postgresql://postgresql-ferret.alwaysdata.net:5432/ferret_hladata";
 	      String user = "postgres";
 
-	      String passwd = "iphone5C";
+	      String passwd = "Ferret.1";
 	      
 	      
 	      //Connection between the program and the Database
@@ -511,7 +511,7 @@ pedfile.delete();
 	    }
     
 	}
-    public void performSearchAndDownload(GUI gui, boolean boolHaplo) {
+    public void performSearchAndDownload(GUI gui) {
         //Add selected populations
         final long startTime = System.nanoTime();
         ArrayList<CharSequence> populations = new ArrayList<>();
@@ -954,6 +954,10 @@ pedfile.delete();
                             output = "vcf";
                             break;
                     }
+                    boolean htmlOutput = gui.isHtmlFile();
+                    System.out.println("htmloutput 1 true =" +htmlOutput);
+                    boolean downloadHaplo = gui.isdownloadHaplo();
+                    System.out.println("downloadHaplo 1 true =" + downloadHaplo);
                     String outputannot = null;
                     switch (gui.getCurrAnnot()[0]) {
                     case NO:
@@ -976,8 +980,8 @@ pedfile.delete();
                         webAddress = "http://ftp.1000genomes.ebi.ac.uk/vol1/ftp/release/20130502/supporting/GRCh38_positions/ALL.chr$.phase3_shapeit2_mvncall_integrated_v3plus_nounphased.rsID.genotypes.GRCh38_dbSNP_no_SVs.vcf.gz";
                     }
 //LOCUS
-                    FerretData currFerretWorker = new FerretData(queries, populations, gui.getFileNameAndPath(), getESP, gui.getProgressText(), webAddress, gui.getMafThreshold()[0], gui.getMafThresholdMax()[0], gui.getEspMAFBoolean()[0], output, outputannot);
-                    currFerretWorker.setHaplo(boolHaplo);
+                    FerretData currFerretWorker = new FerretData(queries, populations, gui.getFileNameAndPath(), getESP, gui.getProgressText(), webAddress, gui.getMafThreshold()[0], gui.getMafThresholdMax()[0], gui.getEspMAFBoolean()[0], output, outputannot,htmlOutput, downloadHaplo);
+                    //currFerretWorker.setHaplo(boolHaplo);
 
                     currFerretWorker.addPropertyChangeListener((PropertyChangeEvent evt) -> {
                         switch (evt.getPropertyName()) {
@@ -1004,7 +1008,7 @@ pedfile.delete();
                                             System.out.println("Total Time: " + (System.nanoTime() - startTime));
                                             if (null == variants[0]) {
                                                 choice = JOptionPane.showOptionDialog(GUI.getSnpFerret(),
-                                                        "Ferret has encountered a problem downloading data. \n"
+                                                        "E1003: Ferret has encountered a problem downloading data. \n"
                                                         + "Please try again later or consult the FAQ. \nDo you want to close Ferret?",
                                                         "Close Ferret?",
                                                         JOptionPane.YES_NO_OPTION,
@@ -1047,7 +1051,7 @@ pedfile.delete();
                                                         break;
                                                     default:
                                                         choice = JOptionPane.showOptionDialog(GUI.getSnpFerret(),
-                                                                "Ferret has encountered a problem downloading data. \n"
+                                                                "E1000: Ferret has encountered a problem downloading data. \n"
                                                                 + "Please try again later or consult the FAQ. \nDo you want to close Ferret?",
                                                                 "Close Ferret?",
                                                                 JOptionPane.YES_NO_OPTION,
@@ -1287,7 +1291,11 @@ pedfile.delete();
                             break;
                     }
                     String outputannot = null;
-                    
+                    boolean htmlOutput = gui.isHtmlFile();
+                    System.out.println("htmloutput 2 true =" +htmlOutput);
+                    boolean downloadHaplo = gui.isdownloadHaplo();
+                    System.out.println("downloadHaplo 2 true =" +downloadHaplo);
+                 
                     switch (gui.getCurrAnnot()[0]) {
                     case NO:
                         outputannot = "no";
@@ -1316,8 +1324,8 @@ pedfile.delete();
                         geneQueryType = "geneID";
                     }
 //GENE
-                    FerretData currFerretWorker = new FerretData(geneQueryType, geneListArray, populations, gui.getFileNameAndPath(), getESP, gui.getProgressText(), webAddress, gui.getMafThreshold()[0], gui.getMafThresholdMax()[0], gui.getEspMAFBoolean()[0], output, gui.getDefaultHG()[0], geneWindowSelected, Integer.parseInt(geneWindowSize), 0, outputannot);
-                    currFerretWorker.setHaplo(boolHaplo);
+                    FerretData currFerretWorker = new FerretData(geneQueryType, geneListArray, populations, gui.getFileNameAndPath(), getESP, gui.getProgressText(), webAddress, gui.getMafThreshold()[0], gui.getMafThresholdMax()[0], gui.getEspMAFBoolean()[0], output, gui.getDefaultHG()[0], geneWindowSelected, Integer.parseInt(geneWindowSize), 0, outputannot, htmlOutput, downloadHaplo);
+                    //currFerretWorker.setHaplo(boolHaplo);
 
                     currFerretWorker.addPropertyChangeListener((PropertyChangeEvent evt) -> {
                         switch (evt.getPropertyName()) {
@@ -1331,22 +1339,19 @@ pedfile.delete();
                                             GUI.getProgressWindow().setVisible(false);
                                             try {
                                                 variants[0] = currFerretWorker.get();
-                                            } catch (ExecutionException e) {
+                                           } catch (ExecutionException e) {
+                                        	    System.out.println("1 - "+e.getMessage());
+                                        	    System.out.println(e.getStackTrace());
                                                 variants[0] = -1;
                                             } catch (InterruptedException e) {
+                                            	System.out.println("2 - "+e.getMessage());
+                                            	System.out.println(e.getStackTrace());
                                                 variants[0] = -1;
                                                 Thread.currentThread().interrupt();
                                             }
                                             // Appel focntion merge
                                             merge(gui);
-                                            /*Merging Snp and hla files in case of hla files already exists*/
-                                            // Initializing hla files
-                                            
-                                            
-                                            
-                                            
-                                            
-                                    		
+                                           
                                             new File("evsClient0_15.jar").delete();
                                             Object[] options = {"Yes", "No"};
                                             int choice;
@@ -1393,7 +1398,7 @@ pedfile.delete();
                                                         break;
                                                     case -1:
                                                         choice = JOptionPane.showOptionDialog(GUI.getSnpFerret(),
-                                                                "Ferret has encountered a problem downloading data. \n"
+                                                                "E1001: Ferret has encountered a problem downloading data. \n"
                                                                 + "Please try again later or consult the FAQ. \nDo you want to close Ferret?",
                                                                 "Close Ferret?",
                                                                 JOptionPane.YES_NO_OPTION,
@@ -1632,7 +1637,10 @@ pedfile.delete();
                             break;
                     }
                     String outputannot = null;
-
+                    boolean htmlOutput = gui.isHtmlFile();
+                    System.out.println("htmloutput 3 true =" +htmlOutput);
+                    boolean downloadHaplo = gui.isdownloadHaplo();
+                    System.out.println("downloadHaplo 3 true =" +downloadHaplo);
                     switch (gui.getCurrAnnot()[0]) {
                         case NO:
                             outputannot = "no";
@@ -1656,8 +1664,8 @@ pedfile.delete();
                     }
 //VARIANT
                     FerretData currFerretWorker = new FerretData("SNP", snpListArray, populations, gui.getFileNameAndPath(), getESP, gui.getProgressText(), webAddress, gui.getMafThreshold()[0], gui.getMafThresholdMax()[0],
-                            gui.getEspMAFBoolean()[0], output, gui.getDefaultHG()[0], snpWindowSelected, Integer.parseInt(snpWindowSize), outputannot);
-                    currFerretWorker.setHaplo(boolHaplo);
+                            gui.getEspMAFBoolean()[0], output, gui.getDefaultHG()[0], snpWindowSelected, Integer.parseInt(snpWindowSize), outputannot, htmlOutput, downloadHaplo);
+                    //currFerretWorker.setHaplo(boolHaplo);
                     currFerretWorker.addPropertyChangeListener((PropertyChangeEvent evt) -> {
                         switch (evt.getPropertyName()) {
                             case "progress":
@@ -1670,10 +1678,15 @@ pedfile.delete();
                                             GUI.getProgressWindow().setVisible(false);
                                             try {
                                                 variants[0] = currFerretWorker.get();
+                                                
                                             } catch (ExecutionException e) {
                                                 variants[0] = -1;
+                                                System.out.println("3 - "+e.getMessage());
+                                        	    System.out.println(e.getStackTrace());
                                             } catch (InterruptedException e) {
                                                 variants[0] = -1;
+                                                System.out.println("4 - "+e.getMessage());
+                                        	    System.out.println(e.getStackTrace());
                                                 Thread.currentThread().interrupt();
                                             }
 
@@ -1719,7 +1732,7 @@ pedfile.delete();
                                                         break;
                                                     case -1:
                                                         choice = JOptionPane.showOptionDialog(GUI.getSnpFerret(),
-                                                                "Ferret has encountered a problem downloading data. \n"
+                                                                "E1002: Ferret has encountered a problem downloading data. \n"
                                                                 + "Please try again later or consult the FAQ. \nDo you want to close Ferret?",
                                                                 "Close Ferret?",
                                                                 JOptionPane.YES_NO_OPTION,
@@ -1805,203 +1818,210 @@ pedfile.delete();
             }
         }
     }
-public void merge(GUI gui)
-{
-	File infohla = new File(gui.getFileNameAndPath() + "_hla.info");
-    File maphla = new File(gui.getFileNameAndPath() + "_hla.map");
-    File pedhla = new File(gui.getFileNameAndPath() + "_hla.ped");
-    
-    if(infohla.isFile() && maphla.isFile() && pedhla.isFile())
+    public void merge(GUI gui)
     {
-    // Merging info files
-    try{
-    	//Printwriter for the merged file
-    PrintWriter pwinfo = new PrintWriter(gui.getFileNameAndPath() + "_m.info");
-    
-    // BufferedReader object for snps files and hla files
-    BufferedReader br1info = new BufferedReader(new FileReader(gui.getFileNameAndPath() + ".info"));
-    BufferedReader br2info = new BufferedReader(new FileReader(gui.getFileNameAndPath() + "_hla.info"));
-    String line1_info = br1info.readLine();
-    String line2_info = br2info.readLine();
-   
-    /* loop to copy lines of  snp files and then hla files */
-    while (line1_info != null)
-    {
- 		            pwinfo.println(line1_info);
- 		            line1_info = br1info.readLine();
-  		         
-    }
-   while (line2_info != null)
- {
- 		         	pwinfo.println(line2_info);
-  		         	line2_info = br2info.readLine();
-  		        }
-  			
-    pwinfo.flush();
-     
-    // closing resources
-    br1info.close();
-    br2info.close();
-    pwinfo.close();
-    } catch (Exception e) {
-		e.printStackTrace();
-	}
-
-
-
-	
-	infohla.delete();
-	File infosnp = new File(gui.getFileNameAndPath() + ".info");
-	infosnp.delete();
-	//Merging map files
-	 try{
-         PrintWriter pwmap = new PrintWriter(gui.getFileNameAndPath() + "_m.map");
-         
-	   
-	        BufferedReader br1map = new BufferedReader(new FileReader(gui.getFileNameAndPath() + ".map"));
-	        BufferedReader br2map = new BufferedReader(new FileReader(gui.getFileNameAndPath() + "_hla.map"));
-	        String line1_map = br1map.readLine();
-	        String line2_map = br2map.readLine();
-	       
-
-	        while (line1_map != null)
-	        {
-	     		            pwmap.println(line1_map);
-	     		            line1_map = br1map.readLine();
-	      		         
-	        }
-	        while (line2_map != null)
-	        {
-	        		         	pwmap.println(line2_map);
-	        		         	line2_map = br2map.readLine();
-	        		        }
-	        			
-	        pwmap.flush();
-	         
-	        // closing resources
-	        br1map.close();
-	        br2map.close();
-	        pwmap.close();
-         } catch (Exception e) {
-				e.printStackTrace();
-			}
-	
-	maphla.delete();
-	File mapsnp = new File(gui.getFileNameAndPath() + ".map");
-	mapsnp.delete();
-	
-	// Merging Ped files
-	
-	
-	  // PrintWriter object for merged file
-PrintWriter pw;
-try {
-	pw = new PrintWriter(gui.getFileNameAndPath() + "_m.ped");
-
-     
-    /* BufferedReader object for respectively snp files et ped files
-     * 
-     * */
-    BufferedReader br1 = new BufferedReader(new FileReader(gui.getFileNameAndPath() + ".ped"));
-    BufferedReader br2 = new BufferedReader(new FileReader(gui.getFileNameAndPath() + "_hla.ped"));
-    BufferedReader br3 = new BufferedReader(new FileReader(gui.getFileNameAndPath() + ".ped"));
-    BufferedReader br4 = new BufferedReader(new FileReader(gui.getFileNameAndPath() + "_hla.ped"));
-     
-    String line1 = br1.readLine();
-    String line2 = br2.readLine();
-    String line3 = br3.readLine();
-    String line4 = br4.readLine();
-
-    
-    String str1 []=null;
-    String str2 []  = null;
-   ArrayList<CharSequence> id_snp = new ArrayList<>();
-   ArrayList<CharSequence> id_hla = new ArrayList<>();
-   ArrayList<Integer> nb_zero = new ArrayList<Integer>();
-    while (line1 != null)
-    {
-    	 str1 = line1.split("\t");
-         line1 = br1.readLine();
-         id_snp.add(str1[1]);
-    
-        //System.out.print("tour1 \n");
-        //System.out.print(str1[1] + "\n");
-    }
-    
-    while (line2 != null)
-    {
-         str2 = line2.split("\t");
-         line2 = br2.readLine();
-         id_hla.add(str2[0]);
-     
-        //System.out.print(str2[0] + "\n");
-        //System.out.print("tour2 \n");
+    	File infosnp = new File(gui.getFileNameAndPath() + ".info");
+        File mapsnp = new File(gui.getFileNameAndPath() + ".map");
+        File pedsnp = new File(gui.getFileNameAndPath() + ".ped");
+    	File infohla = new File(gui.getFileNameAndPath() + "_hla.info");
+        File maphla = new File(gui.getFileNameAndPath() + "_hla.map");
+        File pedhla = new File(gui.getFileNameAndPath() + "_hla.ped");
+        File infom = new File(gui.getFileNameAndPath() + "_m.info");
+        File mapm = new File(gui.getFileNameAndPath() + "_m.map");
+        File pedm = new File(gui.getFileNameAndPath() + "_m.ped");
+        if(infohla.isFile() && maphla.isFile() && pedhla.isFile() && !infosnp.isFile() && !mapsnp.isFile() && !pedsnp.isFile())
+        {
+        	infohla.delete();
+        	maphla.delete();
+        	pedhla.delete();
+        }
         
-    }
-    //System.out.print(str2.length + "\n");
-    //System.out.print(id_snp + "id snp \n");
-    //System.out.print(id_hla + "id hla \n");
-    for(int i=1; i<str2.length;i++)
-    {
-    	nb_zero.add(0);
-    }
-    //System.out.print("\n nb_zero"+nb_zero);
-    while (line3 != null)
-    {
-    	System.out.print("je rentre dans le while");
-    	for (int i = 0; i < id_snp.size(); i++) {
-    			//System.out.print("\n i \t" +id_snp.get(i) + "\t");
-    			
-    			 if (id_hla.contains(id_snp.get(i))) 
-    		         {
- 		            pw.println(line3  +  line4.substring(8));
- 		            line3 = br3.readLine();
-  		            line4 = br4.readLine();
-  		       }
-    			else
-  		        {
-    				pw.print(line3);
-		         	for (int temp : nb_zero)
-		         	{
-		         		pw.print(temp+ "\t");
-		         	}
-		         	pw.print("\n");
-		         	line3 = br3.readLine();
-    		        }
-    			
-        	}
-     
+        
+        if(infohla.length() != 0 && maphla.length() != 0 && pedhla.length() != 0 && infosnp.length() != 0 && mapsnp.length() != 0 && pedsnp.length() != 0)
+        {
+        // Merging info files
+        try{
+        	//Printwriter for the merged file
+        PrintWriter pwinfo = new PrintWriter(infom);
+        
+        // BufferedReader object for snps files and hla files
+        BufferedReader br1info = new BufferedReader(new FileReader(infosnp));
+        BufferedReader br2info = new BufferedReader(new FileReader(infohla));
+        String line1_info = br1info.readLine();
+        String line2_info = br2info.readLine();
+       
+        /* loop to copy lines of  snp files and then hla files */
+        while (line1_info != null)
+        {
+     		            pwinfo.println(line1_info);
+     		            line1_info = br1info.readLine();
+      		         
+        }
+       while (line2_info != null)
+     {
+     		         	pwinfo.println(line2_info);
+      		         	line2_info = br2info.readLine();
+      		        }
+      			
+        pwinfo.flush();
+         
+        // closing resources
+        br1info.close();
+        br2info.close();
+        pwinfo.close();
+        } catch (Exception e) {
+    		e.printStackTrace();
     	}
-    
 
-    pw.flush();
-     
-    // closing resources
-    br1.close();
-    br2.close();
-    br3.close();
-    br4.close();
-    pw.close();
-} catch (Exception e) {
-	e.printStackTrace();
-}
 
-pedhla.delete();
-File pedsnp = new File(gui.getFileNameAndPath() + ".ped");
-pedsnp.delete();
- // Initializing merged files in order to delete them if its empty
-File infom = new File(gui.getFileNameAndPath() + "_m.info");
-File mapm = new File(gui.getFileNameAndPath() + "_m.map");
-File pedm = new File(gui.getFileNameAndPath() + "_m.ped");
 
-if(infom.length() == 0 && mapm.length() == 0 && pedm.length() == 0)
-{
-	infom.delete();
-	mapm.delete();
-	pedm.delete();
-}
-    
+    	
+    	infohla.delete();
+    	infosnp.delete();
+    	//Merging map files
+    	 try{
+             PrintWriter pwmap = new PrintWriter(mapm);
+             
+    	   
+    	        BufferedReader br1map = new BufferedReader(new FileReader(mapsnp));
+    	        BufferedReader br2map = new BufferedReader(new FileReader(maphla));
+    	        String line1_map = br1map.readLine();
+    	        String line2_map = br2map.readLine();
+    	       
+
+    	        while (line1_map != null)
+    	        {
+    	     		            pwmap.println(line1_map);
+    	     		            line1_map = br1map.readLine();
+    	      		         
+    	        }
+    	        while (line2_map != null)
+    	        {
+    	        		         	pwmap.println(line2_map);
+    	        		         	line2_map = br2map.readLine();
+    	        		        }
+    	        			
+    	        pwmap.flush();
+    	         
+    	        // closing resources
+    	        br1map.close();
+    	        br2map.close();
+    	        pwmap.close();
+             } catch (Exception e) {
+    				e.printStackTrace();
+    			}
+    	
+    	maphla.delete();
+    	mapsnp.delete();
+    	
+    	// Merging Ped files
+    	
+    	
+    	  // PrintWriter object for merged file
+    PrintWriter pw;
+    try {
+    	pw = new PrintWriter(pedm);
+
+         
+        /* BufferedReader object for respectively snp files nd hla files
+         * 
+         * */
+        BufferedReader br1 = new BufferedReader(new FileReader(pedsnp));
+        BufferedReader br2 = new BufferedReader(new FileReader(pedhla));
+        BufferedReader br3 = new BufferedReader(new FileReader(pedsnp));
+        BufferedReader br4 = new BufferedReader(new FileReader(pedhla));
+         
+        String line1 = br1.readLine();
+        String line2 = br2.readLine();
+        String line3 = br3.readLine();
+        String line4 = br4.readLine();
+
+        
+        String str1 []=null;
+        String str2 []  = null;
+       ArrayList<CharSequence> id_snp = new ArrayList<>();
+       ArrayList<CharSequence> id_hla = new ArrayList<>();
+       ArrayList<Integer> nb_zero = new ArrayList<Integer>();
+        while (line1 != null)
+        {
+        	 str1 = line1.split("\t");
+             line1 = br1.readLine();
+             id_snp.add(str1[1]);
+        
+            //System.out.print("tour1 \n");
+            //System.out.print(str1[1] + "\n");
+        }
+        
+        while (line2 != null)
+        {
+             str2 = line2.split("\t");
+             line2 = br2.readLine();
+             id_hla.add(str2[0]);
+         
+            //System.out.print(str2[0] + "\n");
+            //System.out.print("tour2 \n");
+            
+        }
+        //System.out.print(str2.length + "\n");
+        //System.out.print(id_snp + "id snp \n");
+        //System.out.print(id_hla + "id hla \n");
+        for(int i=1; i<str2.length;i++)
+        {
+        	nb_zero.add(0);
+        }
+        //System.out.print("\n nb_zero"+nb_zero);
+        while (line3 != null)
+        {
+        	
+        	for (int i = 0; i < id_snp.size(); i++) {
+        			//System.out.print("\n i \t" +id_snp.get(i) + "\t");
+        			
+        			 if (id_hla.contains(id_snp.get(i))) 
+        		         {
+     		            pw.println(line3  +  line4.substring(8));
+     		            line3 = br3.readLine();
+      		            line4 = br4.readLine();
+      		       }
+        			else
+      		        {
+        				pw.print(line3);
+    		         	for (int temp : nb_zero)
+    		         	{
+    		         		pw.print(temp+ "\t");
+    		         	}
+    		         	pw.print("\n");
+    		         	line3 = br3.readLine();
+        		        }
+        			
+            	}
+         
+        	}
+        
+
+        pw.flush();
+         
+        // closing resources
+        br1.close();
+        br2.close();
+        br3.close();
+        br4.close();
+        pw.close();
+    } catch (Exception e) {
+    	e.printStackTrace();
     }
-}
+
+    pedhla.delete();
+    pedsnp.delete();
+        
+        }
+     //delete merge files  if they r empty
+        if(infom.length() == 0 && mapm.length() == 0 && pedm.length() == 0)
+        {
+        	
+        	infom.delete();
+        	mapm.delete();
+        	pedm.delete();
+        }
+    }
     
 }

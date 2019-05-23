@@ -3,6 +3,7 @@ package com.ecn.ferretmvc.model;
 import com.ecn.ferretmvc.main.FerretMain;
 import com.ecn.ferretmvc.view.GUI;
 
+import java.util.*;
 import java.util.regex.*;
 import java.awt.Component;
 import java.awt.Desktop;
@@ -22,18 +23,16 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.security.CodeSource;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.text.DecimalFormat;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -58,93 +57,16 @@ import java.util.concurrent.*;
 
 
 public class FerretData extends SwingWorker<Integer, String> {
-	private static final int MYTHREADS = 30;
-	private static BufferedReader br;
-	private static BufferedReader brvep;
-	private static String Varid = null;
-	BufferedWriter mapWrite, infoWrite, pedWrite, frqWrite;
-    boolean fileEmpty, frqFileEmpty;
-    int index;
-    int espErrorCount;
-    String s;
-    String[][] genotypes;
-    LinkedList<EspInfoObj> espData;
-//	private static String geneSymbol = null;
-//	private static String geneId = null;
-//	private static String proteinPos = null;
-//	private static String proteinAcc = null;
-//	private static String fxnName = null;
-//	private static String aa1 = null;
-//	private static String aa2 = null;
-//	private static String protein_end = null;
-//	private static String sift_score = null;
-//	private static String sift_score1 = null;
-//	private static String polyphen_score = null;
-//	private static String polyphen_score1 = null;
-//	private static String sift_prediction = null;
-//	private static String sift_prediction1 = null;
-//	private static String polyphen_prediction = null;
-//	private static String polyphen_prediction1 = null;
-//	String geneSymbol;
-//    String geneId;
-//    String proteinPos;
-//    String proteinAcc;
-//    String fxnName;
-//    String aa1;
-//    String aa2;
-//    String protein_end;
-//    String sift_score;
-//    String sift_score1;
-//    String polyphen_score;
-//    String polyphen_score1;
-//    String sift_prediction;
-//    String sift_prediction1;
-//    String polyphen_prediction;
-//    String polyphen_prediction1;
-//	String geneSymbol = null;
-//    String geneId = null;
-//    String proteinPos = null;
-//    String proteinAcc = null;
-//    String fxnName = null;
-//    String aa1 = null;
-//    String aa2 = null;
-//    String protein_end = null;
-//    String sift_score = null;
-//    String sift_score1 = null;
-//    String polyphen_score = null;
-//    String polyphen_score1 = null;
-//    String sift_prediction = null;
-//    String sift_prediction1 = null;
-//    String polyphen_prediction = null;
-//    String polyphen_prediction1 = null;
-	private static String geneSymbol;
-	private static String geneId;
-	private static String proteinPos;
-	private static String proteinAcc;
-	private static String fxnName;
-	private static String aa1;
-	private static String aa2;
-	private static String protein_end;
-	private static String sift_score;
-	private static String sift_score1;
-	private static String polyphen_score;
-	private static String polyphen_score1;
-	private static String sift_prediction;
-	private static String sift_prediction1;
-	private static String polyphen_prediction;
-	private static String polyphen_prediction1;
-	private static URL urlLocation;
-	private static URL urlvep;
-	private static Runnable worker;
-	
-    boolean passee;
-    boolean passee1;
-    ThreadPoolExecutor  executor= new ThreadPoolExecutor(300,300,500, TimeUnit.MILLISECONDS,
+
+    private Map<Integer, String> StockLineFreq;
+
+
+	private Runnable worker;
+
+        ThreadPoolExecutor  executor= new ThreadPoolExecutor(300,300,500, TimeUnit.MILLISECONDS,
    		 new LinkedBlockingQueue<Runnable>(), new ThreadPoolExecutor.CallerRunsPolicy());
-    //ExecutorService executor = Executors.newFixedThreadPool(MYTHREADS);
-    //private GUI gui = new GUI();
-    //private DownloadTheDataModel model = new DownloadTheDataModel();
-	
+
+
     InputRegion[] queries;
     ArrayList<CharSequence> populations;
     String fileName;
@@ -156,7 +78,9 @@ public class FerretData extends SwingWorker<Integer, String> {
     String outputFiles;
     String annotFiles;
     double espMAF;
-    private boolean usehaplo;
+    //private boolean usehaplo;
+    boolean htmlOutputFile;
+    boolean downloadHaplo;
 
     String queryType = null; // for both gene and SNP queries
     Boolean defaultHG = null; // for both gene and SNP queries
@@ -168,7 +92,7 @@ public class FerretData extends SwingWorker<Integer, String> {
 
     // constructor for the locus research
     public FerretData(InputRegion[] queries, ArrayList<CharSequence> populations, String fileName,
-            boolean retrieveESP, JLabel status, String ftpAddress, double MAF, double MAFMax, Boolean ESPMAF, String outputFiles , String annotFiles) {
+            boolean retrieveESP, JLabel status, String ftpAddress, double MAF, double MAFMax, Boolean ESPMAF, String outputFiles , String annotFiles,boolean htmlOutputFile,boolean downloadHaplo ) {
         this.queries = queries;
         this.populations = populations;
         this.fileName = fileName;
@@ -184,13 +108,15 @@ public class FerretData extends SwingWorker<Integer, String> {
         }
         this.outputFiles = outputFiles;
         this.annotFiles = annotFiles;
-        this.usehaplo = false;
+        this.htmlOutputFile = htmlOutputFile;
+        this.downloadHaplo = downloadHaplo;
+       // this.usehaplo = false;
     }
 
     //Constructor for the SNP (variants) research
     public FerretData(String queryType, ArrayList<String> snpQueries, ArrayList<CharSequence> populations, String fileName,
             boolean retrieveESP, JLabel status, String ftpAddress, double MAF, double MAFMax, Boolean ESPMAF, String outputFiles, boolean defaultHG,
-            boolean snpWindowSelected, Integer windowSize, String annotFiles) {
+            boolean snpWindowSelected, Integer windowSize, String annotFiles,boolean htmlOutputFile, boolean downloadHaplo) {
         // this constructor is exclusively for SNP queries
         this.queries = null;
         this.populations = populations;
@@ -207,17 +133,19 @@ public class FerretData extends SwingWorker<Integer, String> {
         }
         this.outputFiles = outputFiles;
         this.annotFiles = annotFiles;
+        this.htmlOutputFile = htmlOutputFile;
         this.queryType = queryType;
         this.snpQueries = snpQueries;
         this.defaultHG = defaultHG;
         this.snpWindowSelected = snpWindowSelected;
         this.windowSize = windowSize;
-        this.usehaplo = false;
+        //this.usehaplo = false;
+        this.downloadHaplo = downloadHaplo;
     }
 
     //Constructor for the gene research
     public FerretData(String queryType, String[] geneQueries, ArrayList<CharSequence> populations, String fileName,
-            boolean retrieveESP, JLabel status, String ftpAddress, double MAF, double MAFMax, Boolean ESPMAF, String outputFiles, boolean defaultHG, boolean geneWindowSelected, Integer windowSize, int o, String annotFiles) {
+            boolean retrieveESP, JLabel status, String ftpAddress, double MAF, double MAFMax, Boolean ESPMAF, String outputFiles, boolean defaultHG, boolean geneWindowSelected, Integer windowSize, int o, String annotFiles,boolean htmlOutputFile, boolean downloadHaplo) {
         // this constructor is exclusively for gene queries
         this.queries = null;
         this.populations = populations;
@@ -234,21 +162,25 @@ public class FerretData extends SwingWorker<Integer, String> {
         }
         this.outputFiles = outputFiles;
         this.annotFiles = annotFiles;
+        this.htmlOutputFile = htmlOutputFile;
         this.queryType = queryType;
         this.geneQueries = geneQueries;
         this.defaultHG = defaultHG;
         this.geneWindowSelected = geneWindowSelected;
         this.windowSize = windowSize;
-        this.usehaplo = false;
+        //this.usehaplo = false;
+        this.downloadHaplo =  downloadHaplo;
     }
 
-    //setter that put the boolean usehaplo as true, use in doInBackGround to open or not Haploview at the end
-    public void setHaplo(boolean b) {
-        this.usehaplo = b;
-    }
+
+
+	//setter that put the boolean usehaplo as true, use in doInBackGround to open or not Haploview at the end
+//    public void setHaplo(boolean b) {
+//        this.usehaplo = b;
+//    }
 
     @Override
-    public Integer doInBackground() {
+    public Integer doInBackground() throws Exception {
 
         // SNP query here
         if (queryType != null && "SNP".equals(queryType)) {
@@ -259,51 +191,30 @@ public class FerretData extends SwingWorker<Integer, String> {
             InputRegion[] queries = null;
             ArrayList<String> SNPsFound = new ArrayList<>();
             boolean allSNPsFound = true;
-            BufferedReader br = null;
+            //allSNPsFound = true;
+            //BufferedReader br = null;
+            //br = null;
             try {
+            	
+            	
                 for (int i = 0; i < snpQueries.size(); i++) {
                 	System.out.println("snp queries" + snpQueries);
-                    URL urlLocation = new URL("https://www.ncbi.nlm.nih.gov/projects/SNP/snp_gene.cgi?connect=&rs=" + snpQueries.get(i));
-                    br = new BufferedReader(new InputStreamReader(urlLocation.openStream()));
-                    String currentString;
-                    if (defaultHG) {
-                        while ((currentString = br.readLine()) != null && !currentString.contains("\"GRCh37.p13\" : [")) {
-                        }
-                    } else {
-                        while ((currentString = br.readLine()) != null && !currentString.contains("\"GRCh38.p2\" : [")) {
-                        }
-                    }
-                    boolean chrFound = false, startFound = false, endFound = false, locatedOnInvalidChr = false;
-                    while (!(startFound && endFound && chrFound) && (currentString = br.readLine()) != null) {
-                        if (currentString.contains("\"chrPosFrom\"")) {
-                            startPos.add(currentString.substring(currentString.indexOf(" : \"") + 4, currentString.indexOf("\",")));
-                            startFound = true;
-                        } else if (currentString.contains("\"chr\"")) {
-                            chromosome.add(currentString.substring(currentString.indexOf(" : \"") + 4, currentString.indexOf("\",")));
-                            locatedOnInvalidChr = chromosome.peekLast().equals("X") || chromosome.peekLast().equals("Y") || chromosome.peekLast().equals("MT");
-                            chrFound = true;
-                        } else if (currentString.contains("\"chrPosTo\"")) {
-                            endPos.add(currentString.substring(currentString.indexOf(" : \"") + 4, currentString.indexOf("\",")));
-                            endFound = true;
-                        }
-                    }
-                    if (!(startFound && endFound && chrFound && !locatedOnInvalidChr)) {
-                        // If one of the three elements is missing the other elements corresponding to the missing one are removed
-                        if (startFound) {
-                            startPos.removeLast();
-                        }
-                        if (endFound) {
-                            endPos.removeLast();
-                        }
-                        if (chrFound) {
-                            chromosome.removeLast();
-                        }
-                        allSNPsFound = false;
-                    } else {
-                        SNPsFound.add(snpQueries.get(i));
-                    }
-                    br.close();
+                    URL urlLocation;
+					
+						urlLocation = new URL("https://www.ncbi.nlm.nih.gov/projects/SNP/snp_gene.cgi?connect=&rs=" + snpQueries.get(i));
+						Runnable workersnpQueries = new ThreadingsnpQueries(i,snpQueries,chromosome,startPos,endPos,SNPsFound,allSNPsFound,defaultHG,urlLocation);
+						executor.execute(workersnpQueries);
+
                 }
+                executor.shutdown();
+              	// Wait until all threads are finish
+              	while (!executor.isTerminated()) {
+
+              	}
+              	executor = new ThreadPoolExecutor(100,100,500, TimeUnit.MILLISECONDS,
+              	   		 new LinkedBlockingQueue<Runnable>(), new ThreadPoolExecutor.CallerRunsPolicy());
+
+            
                 if (!allSNPsFound && !SNPsFound.isEmpty()) {//Partial list
                     String[] options = {"Yes", "No"};
 
@@ -355,25 +266,10 @@ public class FerretData extends SwingWorker<Integer, String> {
                     }
                 }
                 this.queries = queries;
-            } catch (FileNotFoundException e) {
-                // Either will occur if ncbi is down or if something is wrong with the input
-                JOptionPane.showMessageDialog(null, "Ferret was unable to retrieve any variants", "Error", JOptionPane.OK_OPTION);
-                return -2;
-            } catch (IOException e) {
-                JOptionPane.showMessageDialog(null, "Ferret was unable to retrieve any variants", "Error", JOptionPane.OK_OPTION);
-                return -2;
             } catch (Exception e) {
                 JOptionPane.showMessageDialog(null, "Ferret was unable to retrieve any variants", "Error", JOptionPane.OK_OPTION);
                 return -2;
-            } finally {
-                if (br != null) {
-                    try {
-                        br.close();
-                    } catch (IOException ex) {
-                        Logger.getLogger(FerretData.class.getName()).log(Level.SEVERE, null, ex);
-                    }
-                }
-            }
+            } 
         }
         // gene treatment
 
@@ -432,7 +328,7 @@ public class FerretData extends SwingWorker<Integer, String> {
         ArrayList<String> peopleOfInterest = new ArrayList<>();
         int variantCounter = 0;
         int peopleCounter = 0;
-        genotypes = null;
+        String[][] genotypes = null;
 
         ArrayList<InputRegion> sortedQueries = sortByWindow(queries);
         String webAddress = ftpAddress.replace('$', '1');
@@ -486,12 +382,12 @@ public class FerretData extends SwingWorker<Integer, String> {
             }
             popBuffRead.close();
         } catch (IOException e) {
-            //This shouldn't be a problem since the file being read comes with Ferret 
+            //This shouldn't be a problem since the file being read comes with Ferret
         } finally {
         }
 
         publish("Downloading Data from 1000 Genomes...");
-        //String s;
+        String s;
         long startTime = 0;
         Integer tempInt = null;
 
@@ -529,6 +425,7 @@ public class FerretData extends SwingWorker<Integer, String> {
                 vcfWrite.newLine();
 
                 for (int j = 0; j < queryNumber; j++) {
+                	
                     webAddress = ftpAddress.replace("$", sortedQueries.get(j).getChr());
                     tr = new TabixReader(webAddress);
                     startTime = System.nanoTime();
@@ -565,10 +462,10 @@ public class FerretData extends SwingWorker<Integer, String> {
                                 chromosomeCount += 2;
                             }
                         }
-                        // This loop is equivalent to an if "all" 
+                        // This loop is equivalent to an if "all"
                         boolean tempBoolean = true;
                         for (int i = 0; i < variantFreq.length; i++) {
-                            if ((variantFreq[i] / (float) chromosomeCount) < MAF || (variantFreq[i] / (float) chromosomeCount) < MAFMax) {
+                            if ((variantFreq[i] / (float) chromosomeCount) < MAF){// || (variantFreq[i] / (float) chromosomeCount) < MAFMax) {
                                 tempBoolean = false; //if fail MAF Threshold, continue to next line
                             }
                         }
@@ -580,6 +477,7 @@ public class FerretData extends SwingWorker<Integer, String> {
                     }
 
                 }
+                vcfWrite.close();
                 if (variantCounter == 0) {
                     vcfWriteFile.delete();
                     return 0;
@@ -593,52 +491,60 @@ public class FerretData extends SwingWorker<Integer, String> {
 
             // VCF writing code is right here for compatibility with swingWorker
             try {
-                File vcfFile = new File(fileName + "_genotypes.vcf");
-                vcfFile.createNewFile();
-                try (BufferedWriter vcfBuffWrite = new BufferedWriter(new FileWriter(vcfFile))) {
+//            	File vcfFile = new File(fileName + "_genotypes.vcf");
+//                vcfFile.createNewFile();
+               
+                //vcfFile.createNewFile();
+            	BufferedWriter vcfBuffWrite = null;
+                int compt = 0;
                     for (int j = 0; j < queryNumber; j++) {
-                        webAddress = ftpAddress.replace("$", sortedQueries.get(j).getChr());
-
-                        //webAddress = "ftp://ftp-trace.ncbi.nih.gov/1000genomes/ftp/release/20130502/ALL.chr" + sortedQueries.get(j).getChr() + ".phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes.vcf.gz";
-                        //webAddress = "ftp://ftp-trace.ncbi.nih.gov/1000genomes/ftp/release/20130502/supporting/GRCh38_positions/ALL.chr" + sortedQueries.get(j).getChr() + ".phase3_shapeit2_mvncall_integrated_v3plus_nounphased.rsID.genotypes.GRCh38_dbSNP_no_SVs.vcf.gz";
-                        TabixReader tr = new TabixReader(webAddress);
-
-                        // Get the iterator
-                        startTime = System.nanoTime();
-                        TabixReader.Iterator iter = tr.query(sortedQueries.get(j).getChr() + ":" + sortedQueries.get(j).getStart() + "-" + sortedQueries.get(j).getEnd());
-                        long endTime = System.nanoTime();
-                        System.out.println("Tabix iterator time: " + (endTime - startTime));
-                        while ((s = iter.next()) != null) {
-                            variantCounter++;
-                            String[] stringSplit = s.split("\t");
-                            if (stringSplit[6].equals("PASS")) {
-                                if (isInteger(stringSplit[1])) {
-                                    tempInt = Integer.parseInt(stringSplit[1]) - sortedQueries.get(j).getStart();
-                                    if (tempInt > 0) {
-                                        setProgress((int) ((tempInt + querySize[j]) / (double) querySize[queryNumber] * 99));
-                                    }
-                                }
-                                if (stringSplit[2].equals(".")) {
-                                    stringSplit[2] = "chr" + sortedQueries.get(j).getChr() + "_" + stringSplit[1];
-                                    for (int i = 0; i < stringSplit.length; i++) {
-                                        vcfBuffWrite.write(stringSplit[i] + "\t");
-                                    }
-                                } else {
-                                    vcfBuffWrite.write(s);
-                                }
-                                vcfBuffWrite.newLine();
-                            } else {
-                                vcfBuffWrite.write(s);
-                                vcfBuffWrite.newLine();
-                            }
-                        }
-                        long endEndTime = System.nanoTime();
-                        System.out.println("Iteration time: " + (endEndTime - endTime));
+                    	Runnable worker2 = new Threading1(j,startTime,sortedQueries,webAddress,ftpAddress,queryNumber,variantCounter,tempInt,querySize,fileName);
+                    executor.execute(worker2);
+//                  if (tempInt > 0) {
+//                  setProgress((int) ((tempInt + querySize[j]) / (double) querySize[queryNumber] * 99));
+//              }
+                    compt++;
+                    System.out.println("variantCounterfor--->" + variantCounter);
                     }
-                }
-            } catch (IOException e) {
-                System.out.println("IOException " + tempInt);
-                return -1;
+                
+                
+                    
+                    System.out.println("compt" + compt);
+                    executor.shutdown();
+                  	// Wait until all threads are finish
+                  	while (!executor.isTerminated()) {
+
+                  	}
+                  	System.out.println("variantCounteroutfor--->" + variantCounter);
+                  	File vcfFile = new File(fileName + "_genotypes.vcf");
+                  	vcfFile.createNewFile();
+                  	vcfBuffWrite = new BufferedWriter(new FileWriter(vcfFile));
+                  	//System.out.println("buffWrite" + vcfBuffWrite);
+                  	//HERE
+                  	
+                  	for (int i = 0; i < compt; i++) {
+                   	 if(Threading1.StockLineVcfall.get(i) == null){
+                   		 //System.out.println("StockLineVcfall: idx ("+ i +") does not exist");
+                   	 }
+                   	else{
+                   		int localSize = Threading1.StockLineVcfall.get(i).size();
+                   		for (int t = 0; t < localSize; t++){
+                   			//System.out.println("\tStockLineVcfall ----->" + Threading1.StockLineVcfall.get(i).get(t));
+                   			vcfBuffWrite.write(Threading1.StockLineVcfall.get(i).get(t) +"\n");
+                   		}
+                    }
+                   	 
+                  	}
+                  	vcfBuffWrite.close();
+                  	
+                  	executor = new ThreadPoolExecutor(300,300,500, TimeUnit.MILLISECONDS,
+                  	   		 new LinkedBlockingQueue<Runnable>(), new ThreadPoolExecutor.CallerRunsPolicy());
+                
+           
+        
+//        } catch (IOException e) {
+//                System.out.println("IOException " + tempInt);
+//                return -1;
             } catch (NullPointerException e) {
                 System.out.println("Null Pointer Exception " + tempInt);
                 return -1;
@@ -648,22 +554,25 @@ public class FerretData extends SwingWorker<Integer, String> {
                 System.out.println("Iteration time: " + (System.nanoTime() - startTime));
                 return -1;
             }
+            variantCounter = Threading1.variantCounter;
+            //System.out.println("variantCounterouttry--->" + variantCounter);
+            
             // end VCF writing
 
             //LinkedList<EspInfoObj> espData = null;
-             espData = null;
+            LinkedList<EspInfoObj> espData = null;
             if (retrieveESP) {
                 publish("Downloading Data from Exome Sequencing Project...");
                 espData = FerretData.exomeSequencingProject(sortedQueries);
             }
             if (variantCounter == 0 && (espData == null || espData.size() == 0)) {
                 File vcfFile = new File(fileName + "_genotypes.vcf");
+                System.out.println("test" + variantCounter +"\t"+ espData);
                 vcfFile.delete();
                 return 0;
             }
 
             publish("Outputting files...");
-            //Runnable worker = new CallerRunsPolicyDemo ().new  MyRunnable(urlLocation,urlvep) { @Override public void run() {
             try {
             	//Runnable worker = new CallerRunsPolicyDemo ().new  MyRunnable(urlLocation,urlvep) { @Override public void run() {
                 // Creating lookup HashMap for family info, etc.
@@ -676,15 +585,13 @@ public class FerretData extends SwingWorker<Integer, String> {
                     familyInfo.put(text[1], temp);
                 }
                 familyInfoRead.close();
-                
-           
 
-//                BufferedWriter mapWrite = null, infoWrite = null, pedWrite = null, frqWrite = null;
-//                boolean fileEmpty = true, frqFileEmpty = true;
+                BufferedWriter mapWrite = null, infoWrite = null, pedWrite = null, frqWrite = null;
+                boolean fileEmpty = true, frqFileEmpty = true;
                 
-                mapWrite = null; infoWrite = null; pedWrite = null; frqWrite = null;
-                fileEmpty = true; frqFileEmpty = true;
-                
+//                mapWrite = null; infoWrite = null; pedWrite = null; frqlpoiWrite = null;
+//                fileEmpty = true; frqFileEmpty = true;
+
 
                 if (outputFiles == "all") {
                     genotypes = new String[peopleCounter + 1][2 * variantCounter + 6];
@@ -704,26 +611,7 @@ public class FerretData extends SwingWorker<Integer, String> {
 
                 BufferedReader vcfRead = new BufferedReader(new FileReader(fileName + "_genotypes.vcf"));
 
-                File freqFile = new File(fileName + "AlleleFreq.frq");
-                freqFile.createNewFile();
-                frqWrite = new BufferedWriter(new FileWriter(freqFile));
-                if (retrieveESP) {
-                    frqWrite.write("CHROM\tVARIANT\tPOS\tALLELE1\tALLELE2\tNB_1KG_CHR\t1KG_A1_FREQ\tESP6500_EA_A1_FREQ\tESP6500_AA_A1_FREQ\tGENENAME\tGENEID\tFUNCTION\tPROTEINPOS\tAACHANGE\tPROTEINACC");
-                    frqWrite.newLine();
-                } else {
-                	if(annotFiles.equals("no")){
-                    frqWrite.write("CHROM\tVARIANT\tPOS\tALLELE1\tALLELE2\tNB_CHR\t1KG_A1_FREQ\t1KG_A2_FREQ");
-                    frqWrite.newLine();
-                	}
-                	if(annotFiles.equals("def")){
-                        frqWrite.write("CHROM\tVARIANT\tPOS\tALLELE1\tALLELE2\tNB_CHR\t1KG_A1_FREQ\t1KG_A2_FREQ\tGENENAME\tGENEID\tFUNCTION\tPROTEINPOS\tAACHANGE\tPROTEINACC");
-                        frqWrite.newLine();
-                    	}
-                	if(annotFiles.equals("adv")){
-                        frqWrite.write("CHROM\tVARIANT\tPOS\tALLELE1\tALLELE2\tNB_CHR\t1KG_A1_FREQ\t1KG_A2_FREQ\tGENENAME\tGENEID\tFUNCTION\tPROTEINPOS\tAACHANGE\tPROTEINACC\tSIFT_SCORE\tSIFT_PREDICTION\tPOLYPHEN_SCORE\tPOLYPHEN_PREDICTION");
-                        frqWrite.newLine();
-                    	}
-                }
+
 
                 // Populate the genotypes array with patient/family data
                 if (outputFiles == "all") {
@@ -738,274 +626,57 @@ public class FerretData extends SwingWorker<Integer, String> {
                     }
                 }
 
-                //int index = 0;
-                index = 0;
-                //int espErrorCount = 0;
-                espErrorCount = 0;
+                int index = 0;
+               // index = 0;
+               
+               int espErrorCount = 0;
 
-                //ExecutorService executorvep = Executors.newFixedThreadPool(MYTHREADS);
-                
+				// Connecting to the local database containing RegulomeDB scores
+				String url = "jdbc:postgresql://localhost:5432/regulome_score";
+				String user = "postgres";
+				String passwd = "Ferret.1";
+				Connection conn = null;
+				try {
+					Class.forName("org.postgresql.Driver");
+					conn = DriverManager.getConnection(url, user, passwd);
+				} catch (ClassNotFoundException e1) {
+					e1.printStackTrace();
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+				// Verifying that connection is OK
+				if (conn == null) {
+					JOptionPane.showMessageDialog(null, "Connection to regulomeDB failed", "Warning",
+							JOptionPane.ERROR_MESSAGE);
+				}
+                String Varid = null;
+              int count = 0;
+              int countfake = 0;
+              StockLineFreq = new HashMap<>();
               
+				//String [] test = {"rs201864858", "rs201864858", "rs372723457", "rs372723457", "rs11553019", "rs11553019", "rs139017158", "rs139017158", "rs149964072", "rs149964072", "rs11553018", "rs11553018", "rs141052988", "rs141052988", "rs145664491", "rs145664491", "rs148306581", "rs148306581", "rs74558623", "rs74558623", "rs79377094", "rs79377094", "rs201610844", "rs201610844", "rs375850117", "rs375850117", "rs201342263", "rs201342263", "rs201892015", "rs201892015", "rs115595484", "rs115595484", "rs367663038", "rs367663038", "rs199853927", "rs199853927", "rs200757617", "rs200757617", "rs138567361", "rs138567361", "rs369805092", "rs369805092", "rs200178716", "rs200178716", "rs150755193", "rs150755193", "rs111662059", "rs111662059", "rs376725006", "rs376725006", "rs375747724", "rs375747724", "rs200476766", "rs200476766", "rs375678465", "rs375678465", "rs370150531", "rs370150531", "rs75915990", "rs75915990", "rs141372323", "rs141372323", "rs121909386", "rs121909386", "rs371779195", "rs371779195", "rs190323395", "rs190323395", "rs375833021", "rs375833021", "rs149516753", "rs149516753", "rs140753322", "rs140753322", "rs183437359", "rs183437359", "rs367727112", "rs367727112", "rs370770872", "rs370770872", "rs200241388", "rs200241388", "rs143432523", "rs143432523", "rs370731821", "rs370731821", "rs201280490", "rs201280490", "rs372770283", "rs372770283", "rs199753491", "rs199753491", "rs182944047", "rs182944047", "rs200892725", "rs200892725", "rs372546647", "rs372546647", "rs112200975", "rs112200975", "rs367763475", "rs367763475", "rs150890799", "rs150890799", "rs140162687", "rs140162687", "rs374218650", "rs374218650", "rs149456198", "rs149456198", "rs141485845", "rs141485845", "rs371085455", "rs371085455", "rs368955427", "rs368955427", "rs376644821", "rs376644821", "rs368720992", "rs368720992", "rs191962962"};
+//String [] test = {"rs201864858", "rs201864858", "rs372723457", "rs372723457", "rs11553019", "rs11553019", "rs139017158", "rs139017158", "rs149964072", "rs149964072", "rs11553018", "rs11553018", "rs141052988", "rs141052988", "rs145664491", "rs145664491", "rs148306581", "rs148306581", "rs74558623", "rs74558623", "rs79377094", "rs79377094", "rs201610844", "rs201610844", "rs375850117", "rs375850117", "rs201342263", "rs201342263", "rs201892015", "rs201892015", "rs115595484", "rs115595484", "rs367663038", "rs367663038", "rs199853927", "rs199853927", "rs200757617", "rs200757617", "rs138567361", "rs138567361", "rs369805092", "rs369805092", "rs200178716", "rs200178716", "rs150755193", "rs150755193", "rs111662059", "rs111662059", "rs376725006", "rs376725006", "rs375747724", "rs375747724", "rs200476766", "rs200476766", "rs375678465", "rs375678465", "rs370150531", "rs370150531", "rs75915990", "rs75915990", "rs141372323", "rs141372323", "rs121909386", "rs121909386", "rs371779195", "rs371779195", "rs190323395", "rs190323395", "rs375833021", "rs375833021", "rs149516753", "rs149516753", "rs140753322", "rs140753322", "rs183437359", "rs183437359", "rs367727112", "rs367727112", "rs370770872", "rs370770872", "rs200241388", "rs200241388", "rs143432523", "rs143432523", "rs370731821", "rs370731821", "rs201280490", "rs201280490", "rs372770283", "rs372770283", "rs199753491", "rs199753491", "rs182944047", "rs182944047", "rs200892725", "rs200892725", "rs372546647", "rs372546647", "rs112200975", "rs112200975", "rs367763475", "rs367763475", "rs150890799", "rs150890799", "rs140162687", "rs140162687", "rs374218650", "rs374218650", "rs149456198", "rs149456198", "rs141485845", "rs141485845", "rs371085455", "rs371085455", "rs368955427", "rs368955427", "rs376644821", "rs376644821", "rs368720992", "rs368720992", "rs191962962", "rs200130252", "rs371464691", "rs371464691", "rs149860299", "rs149860299", "rs17853311", "rs17853311", "rs141799648", "rs141799648", "rs200991345", "rs200991345", "rs373556968", "rs373556968", "rs370490541", "rs370490541", "rs192433801", "rs192433801", "rs193921120", "rs193921120", "rs114832056", "rs114832056", "rs141148427", "rs141148427", "rs139868171", "rs139868171", "rs55645588", "rs55645588", "rs148930332", "rs148930332", "rs142380036", "rs142380036", "rs143114089", "rs143114089", "rs371795113", "rs371795113", "rs140868942", "rs140868942", "rs77612325", "rs77612325", "rs201930721", "rs201930721", "rs369386837", "rs369386837", "rs200063787", "rs200063787", "rs144694271", "rs144694271", "rs61754144", "rs61754144", "rs371058203", "rs371058203", "rs374299422", "rs374299422", "rs202183416", "rs202183416", "rs376237191", "rs376237191", "rs142931576", "rs142931576", "rs138453809", "rs138453809", "rs372669126", "rs372669126", "rs200741488", "rs200741488", "rs145258022", "rs145258022", "rs142133680", "rs142133680", "rs111936698", "rs111936698", "rs200087965", "rs200087965", "rs199969149", "rs199969149", "rs141849409", "rs141849409", "rs201695911", "rs201695911", "rs139592813", "rs139592813", "rs147924412", "rs147924412", "rs140792332", "rs140792332", "rs377181231", "rs377181231", "rs150189833", "rs150189833", "rs375141804", "rs375141804", "rs116116323", "rs116116323", "rs376471217", "rs376471217", "rs372047402", "rs372047402", "rs146864292", "rs146864292", "rs150447575", "rs150447575", "rs201238689", "rs201238689", "rs56060938", "rs56060938", "rs145969024", "rs145969024", "rs150396730", "rs150396730", "rs375719718", "rs375719718", "rs368122000", "rs368122000", "rs202219610", "rs202219610", "rs141553742", "rs141553742", "rs143598492", "rs143598492", "rs139848963", "rs139848963", "rs150726674", "rs150726674", "rs150071690", "rs150071690", "rs369614398", "rs369614398", "rs199508384", "rs199508384", "rs142579927", "rs142579927", "rs370707974", "rs370707974", "rs199541629", "rs199541629", "rs144489576", "rs144489576", "rs141603160", "rs141603160", "rs200376025", "rs200376025", "rs377247971", "rs377247971", "rs368507889", "rs368507889", "rs200504997", "rs200504997", "rs372554319", "rs372554319", "rs200846585", "rs200846585", "rs374693835", "rs374693835", "rs199677710", "rs199677710", "rs149375068", "rs149375068", "rs35715176", "rs35715176", "rs370312220", "rs370312220", "rs187291416", "rs187291416", "rs377047066", "rs377047066", "rs369470185", "rs369470185", "rs201203932", "rs201203932", "rs370657286", "rs370657286", "rs377175915", "rs377175915", "rs376584070", "rs376584070", "rs370690563", "rs370690563", "rs367765965", "rs367765965", "rs372071733", "rs372071733", "rs150523147", "rs150523147", "rs371354151", "rs371354151", "rs372163152", "rs372163152", "rs201841925", "rs201841925", "rs71427088", "rs71427088", "rs374710689", "rs374710689", "rs368841036", "rs368841036", "rs200413243", "rs200413243", "rs370205425", "rs370205425", "rs191606676", "rs191606676", "rs367710609", "rs367710609", "rs142154282", "rs142154282", "rs181473681", "rs181473681", "rs187155661", "rs187155661", "rs199818112", "rs199818112", "rs371033068", "rs371033068", "rs373626756", "rs373626756", "rs368217243", "rs368217243", "rs369596744", "rs369596744", "rs202089899", "rs202089899", "rs200820148", "rs200820148", "rs71427089", "rs71427089", "rs371667746", "rs371667746", "rs71427090", "rs71427090", "rs182279361", "rs182279361", "rs373744329", "rs373744329", "rs151143572", "rs151143572", "rs139005498", "rs139005498", "rs375375643", "rs375375643", "rs375994530", "rs375994530", "rs374460728", "rs374460728", "rs184478113", "rs184478113", "rs374283621", "rs374283621", "rs376710920", "rs376710920", "rs368058960", "rs368058960", "rs369812628", "rs369812628", "rs377218922", "rs377218922", "rs373937760", "rs373937760", "rs367716506", "rs367716506", "rs187784560", "rs187784560", "rs371057125", "rs371057125", "rs375430386", "rs375430386", "rs200360125", "rs200360125", "rs376612569", "rs376612569", "rs201025190", "rs201025190", "rs368242766", "rs368242766", "rs371796431", "rs371796431", "rs375965191", "rs375965191", "rs201857731", "rs201857731", "rs149461143", "rs149461143", "rs201676969", "rs201676969", "rs182265220", "rs182265220", "rs376575004", "rs376575004", "rs368659402", "rs368659402", "rs138453809", "rs372669126", "rs372669126", "rs200741488", "rs200741488", "rs145258022", "rs145258022", "rs142133680", "rs142133680", "rs111936698", "rs111936698", "rs200087965", "rs200087965", "rs199969149", "rs199969149", "rs141849409", "rs141849409", "rs201695911", "rs201695911", "rs139592813", "rs139592813", "rs147924412", "rs147924412", "rs140792332", "rs140792332", "rs377181231", "rs377181231", "rs150189833", "rs150189833", "rs375141804", "rs375141804", "rs116116323", "rs116116323", "rs376471217", "rs376471217", "rs372047402", "rs372047402", "rs146864292", "rs146864292", "rs150447575", "rs150447575", "rs201238689", "rs201238689", "rs56060938", "rs56060938", "rs145969024", "rs145969024", "rs150396730", "rs150396730", "rs375719718", "rs375719718", "rs368122000", "rs368122000", "rs202219610", "rs202219610", "rs141553742", "rs141553742", "rs143598492", "rs143598492", "rs139848963", "rs139848963", "rs150726674", "rs150726674", "rs150071690", "rs150071690", "rs369614398", "rs369614398", "rs199508384", "rs199508384", "rs142579927", "rs142579927", "rs370707974", "rs370707974", "rs199541629", "rs199541629", "rs144489576", "rs144489576", "rs141603160", "rs141603160", "rs200376025", "rs200376025", "rs377247971", "rs377247971", "rs368507889", "rs368507889", "rs200504997", "rs200504997", "rs372554319", "rs372554319", "rs200846585", "rs200846585", "rs374693835", "rs374693835", "rs199677710", "rs199677710", "rs149375068", "rs149375068", "rs35715176", "rs35715176", "rs370312220", "rs370312220", "rs187291416", "rs187291416", "rs377047066", "rs377047066", "rs369470185", "rs369470185", "rs201203932", "rs201203932", "rs370657286", "rs370657286", "rs377175915", "rs377175915", "rs376584070", "rs376584070", "rs370690563", "rs370690563", "rs62269205", "rs190964735", "rs190964735", "rs370057056", "rs370057056", "rs201919360", "rs201919360", "rs139164443", "rs139164443", "rs201539423", "rs201539423", "rs139137023", "rs139137023", "rs146027039", "rs146027039", "rs142746163", "rs142746163", "rs144519399", "rs144519399", "rs201585253", "rs201585253", "rs182963279", "rs182963279", "rs148433157", "rs148433157", "rs115649165", "rs115649165", "rs145512022", "rs145512022", "rs200029008", "rs200029008", "rs149648608", "rs149648608", "rs112272566", "rs112272566", "rs143072070", "rs143072070", "rs148962924", "rs148962924", "rs143709160", "rs143709160", "rs148044268", "rs148044268", "rs200848106", "rs200848106", "rs145984650", "rs145984650", "rs200363593", "rs200363593", "rs141814734", "rs141814734", "rs9282642", "rs9282642", "rs2681417", "rs2681417", "rs151260884", "rs151260884", "rs371529328", "rs371529328", "rs144220043", "rs144220043", "rs373228315", "rs373228315", "rs1129055", "rs1129055", "rs370380261", "rs370380261", "rs9282648", "rs9282648", "rs368315978", "rs368315978", "rs371670872", "rs371670872", "rs144326666", "rs144326666", "rs139407450", "rs139407450", "rs370220584", "rs370220584", "rs193922420", "rs193922420", "rs193922432", "rs193922432", "rs104893691", "rs104893691", "rs104893695", "rs104893695", "rs201923228", "rs201923228", "rs121909264", "rs121909264", "rs104893689", "rs104893689", "rs104893697", "rs104893697", "rs200004528", "rs200004528", "rs201091657", "rs201091657", "rs373376842", "rs373376842", "rs62269092", "rs62269092", "rs202179597", "rs202179597", "rs200554202", "rs200554202", "rs200039241", "rs200039241", "rs121909259", "rs121909259", "rs200838528", "rs200838528", "rs193922444", "rs193922444", "rs200771541", "rs200771541", "rs201338034", "rs201338034", "rs145869851", "rs145869851", "rs199980578", "rs199980578", "rs202228006", "rs202228006", "rs201177696", "rs201177696", "rs193922421", "rs193922421", "rs141315218", "rs141315218", "rs192507347", "rs192507347", "rs201423861", "rs201423861", "rs199719951", "rs199719951", "rs140467141", "rs140467141", "rs148174536", "rs148174536", "rs77838721", "rs77838721", "rs377268683", "rs377268683", "rs201572629", "rs201572629", "rs104893716", "rs104893716", "rs200240922", "rs200240922", "rs201536450", "rs201536450", "rs193922423", "rs193922423", "rs377233360", "rs377233360", "rs199688157", "rs199688157", "rs201568219", "rs201568219", "rs115230894", "rs115230894", "rs104893719", "rs104893719", "rs193922425", "rs193922425", "rs201048395", "rs201048395", "rs104893712", "rs104893712", "rs143470909", "rs143470909", "rs201852643", "rs201852643", "rs193922430", "rs193922430", "rs201609857", "rs201609857", "rs104893700", "rs104893700", "rs193922431", "rs193922431", "rs200818687", "rs200818687", "rs201828974", "rs201828974", "rs201670662", "rs201670662", "rs104893718", "rs104893718", "rs200318708", "rs200318708", "rs375468610", "rs375468610", "rs193922433", "rs193922433", "rs199508583", "rs199508583", "rs193922436", "rs193922436", "rs104893706", "rs104893706", "rs373819680", "rs373819680", "rs200777304", "rs200777304", "rs121909269", "rs121909269", "rs201449422", "rs201449422", "rs76327999", "rs76327999", "rs4987051", "rs4987051", "rs200238591", "rs200238591", "rs142704083", "rs142704083", "rs201739901", "rs201739901", "rs144802947", "rs144802947", "rs201579531", "rs201579531", "rs370210949", "rs370210949", "rs142032585", "rs142032585", "rs200394711", "rs200394711", "rs368381766", "rs201864858", "rs372723457", "rs372723457", "rs11553019", "rs11553019", "rs139017158", "rs139017158", "rs149964072", "rs149964072", "rs11553018", "rs11553018", "rs141052988", "rs141052988", "rs145664491", "rs145664491", "rs148306581", "rs148306581", "rs74558623", "rs74558623", "rs79377094", "rs79377094", "rs201610844", "rs201610844", "rs375850117", "rs375850117", "rs201342263", "rs201342263", "rs201892015", "rs201892015", "rs115595484", "rs115595484", "rs367663038", "rs367663038", "rs199853927", "rs199853927", "rs200757617", "rs200757617", "rs138567361", "rs138567361", "rs369805092", "rs369805092", "rs200178716", "rs200178716", "rs150755193", "rs150755193", "rs111662059", "rs111662059", "rs376725006", "rs376725006", "rs375747724", "rs375747724", "rs200476766", "rs200476766", "rs375678465", "rs375678465", "rs370150531", "rs370150531", "rs75915990", "rs75915990", "rs141372323", "rs141372323", "rs121909386", "rs121909386", "rs371779195", "rs371779195", "rs190323395", "rs190323395", "rs375833021", "rs375833021", "rs149516753", "rs149516753", "rs140753322", "rs140753322", "rs183437359", "rs183437359", "rs367727112", "rs367727112", "rs370770872", "rs370770872", "rs200241388", "rs200241388", "rs143432523", "rs143432523", "rs370731821", "rs370731821", "rs201280490", "rs201280490", "rs372770283", "rs372770283", "rs199753491", "rs199753491", "rs182944047", "rs182944047", "rs200892725", "rs200892725", "rs372546647", "rs372546647", "rs112200975", "rs112200975", "rs367763475", "rs367763475", "rs150890799", "rs150890799", "rs140162687", "rs140162687", "rs374218650", "rs374218650", "rs149456198", "rs149456198", "rs141485845", "rs141485845", "rs371085455", "rs371085455", "rs368955427", "rs368955427", "rs376644821", "rs376644821", "rs368720992", "rs368720992", "rs191962962", "rs200130252", "rs371464691", "rs375430386", "rs375430386", "rs200360125", "rs200360125", "rs376612569", "rs376612569", "rs201025190", "rs201025190", "rs368242766", "rs368242766", "rs371796431", "rs371796431", "rs375965191", "rs375965191", "rs201857731", "rs201857731", "rs149461143", "rs149461143", "rs201676969", "rs201676969", "rs182265220", "rs182265220", "rs376575004", "rs376575004", "rs368659402", "rs368659402", "rs138453809", "rs372669126", "rs372669126", "rs200741488", "rs200741488", "rs145258022", "rs145258022", "rs142133680", "rs142133680", "rs111936698", "rs111936698", "rs200087965", "rs200087965", "rs199969149", "rs199969149", "rs141849409", "rs141849409", "rs201695911", "rs201695911", "rs139592813", "rs139592813", "rs147924412", "rs147924412", "rs140792332", "rs140792332", "rs377181231", "rs377181231", "rs150189833", "rs150189833", "rs375141804", "rs375141804", "rs116116323", "rs116116323", "rs376471217", "rs376471217", "rs372047402", "rs372047402", "rs146864292", "rs146864292", "rs150447575", "rs150447575", "rs201238689", "rs201238689", "rs56060938", "rs56060938", "rs145969024", "rs145969024", "rs150396730", "rs150396730", "rs375719718", "rs375719718", "rs368122000", "rs368122000", "rs202219610", "rs202219610", "rs141553742", "rs141553742", "rs143598492", "rs143598492", "rs139848963", "rs139848963", "rs150726674", "rs150726674", "rs150071690", "rs150071690", "rs369614398", "rs369614398", "rs199508384", "rs199508384", "rs142579927", "rs142579927", "rs370707974", "rs370707974", "rs199541629", "rs199541629", "rs144489576", "rs144489576", "rs141603160", "rs141603160", "rs200376025", "rs200376025", "rs377247971", "rs377247971", "rs368507889", "rs368507889", "rs200504997", "rs200504997", "rs372554319", "rs372554319", "rs200846585", "rs200846585", "rs374693835", "rs374693835", "rs199677710", "rs199677710", "rs149375068", "rs149375068", "rs35715176", "rs35715176", "rs370312220", "rs370312220", "rs187291416", "rs187291416", "rs377047066", "rs377047066", "rs369470185", "rs369470185", "rs201203932", "rs201203932", "rs370657286", "rs370657286", "rs377175915", "rs377175915", "rs376584070", "rs376584070", "rs370690563", "rs370690563", "rs62269205", "rs190964735", "rs190964735", "rs370057056", "rs370057056", "rs201919360", "rs201919360", "rs139164443", "rs139164443", "rs201539423", "rs201539423", "rs139137023", "rs139137023", "rs146027039", "rs146027039", "rs142746163", "rs142746163", "rs144519399", "rs144519399", "rs201585253", "rs201585253", "rs182963279", "rs182963279", "rs148433157", "rs148433157", "rs115649165", "rs115649165", "rs145512022", "rs145512022", "rs200029008", "rs200029008", "rs149648608", "rs149648608", "rs112272566", "rs112272566", "rs143072070", "rs143072070", "rs148962924", "rs148962924", "rs143709160", "rs143709160", "rs148044268", "rs148044268", "rs200848106", "rs200848106", "rs145984650", "rs145984650", "rs200363593", "rs200363593", "rs141814734", "rs141814734", "rs9282642", "rs9282642", "rs2681417"};
+        
                 while ((s = vcfRead.readLine()) != null) {
-
-
                 	
-                		//try{
-                    String[] text = s.split("\t");
-                    //System.out.print("cptwhile"+ cptwhile);
-                  //cptwhile ++;
-
+                   String [] text = s.split("\t");
+                    //System.out.print("\t text" + text[2]);
+                    Varid = text[2].substring(2);
+                    //System.out.print("test" + test[count]);
+                	//System.out.println("Varid : " + Varid);
+                   
 /* text[2] contains all the rsid for a gene, a locus or variants inputted by the user*/
 
-                    System.out.print("\t text" + text[2]);
-                    geneSymbol = "grosse";
-                    geneId = null;
-                    proteinPos = null;
-                    proteinAcc = null;
-                    fxnName = null;
-                    //String [] mrnaAcc = null;
-                    aa1 = null;
-                    aa2= null;
-                    protein_end = null;
-                    sift_score = null;
-                    sift_score1 = null;
-                    polyphen_score = null;
-                    polyphen_score1 = null;
-                    sift_prediction = null;
-                    sift_prediction1 = null;
-                    polyphen_prediction = null;
-                    polyphen_prediction1 = null; 
-                	passee = false;
-                	passee1 = false;
+                    
+                    
                    
-                 Varid = text[2].substring(2);
-       
-                 worker = new CallerRunsPolicyDemo ().new  MyRunnable(urlLocation,urlvep) { @Override public void run() {
-                     //for (int i = 0; i < Varid.length; i++) {
+                 worker = new AnnotThreading(count,Varid,conn);
+                    //worker = new AnnotThreading(count,Varid,conn);
+                 executor.execute(worker);
+                 setProgress(Threading1.progress);
+                 
 
-                   try {
-                        	System.out.println("\tCe qu'il y'a dans varid\t" + Varid);
-                            URL urlLocation = new URL("https://www.ncbi.nlm.nih.gov/projects/SNP/snp_gene.cgi?connect=&rs=" + Varid);
-                            String server = "https://rest.ensembl.org";
-                		    String ext = "/vep/human/id/rs" + Varid+ "?content-type=application/json";
-                		    URL urlvep = new URL(server + ext);
-
-                		    br = null;
-                		    brvep = null;
-                		    URLConnection connection = urlvep.openConnection();
-                		    HttpURLConnection httpConnection = (HttpURLConnection)connection;
-                   		
-                		    httpConnection.setRequestProperty("Content-Type", "application/json");
-                		    
-
-                		    //worker = new CallerRunsPolicyDemo ().new  MyRunnable(urlLocation,urlvep) { @Override public void run() {
-                		    	
-                		    try{
-                		    	
-                		    	br = new BufferedReader(new InputStreamReader(urlLocation.openStream()));
-       
-                            
-                            String currentString;
-
-                                while ((currentString = br.readLine()) != null  && !currentString.contains("\"mrnaAcc\" : ")) 
-                                {
-                                	//System.out.print("currentString\t" + currentString);
-                                    if (currentString.contains("\"geneSymbol\"")) {
-                                    	geneSymbol = currentString.substring(currentString.indexOf(" : \"") + 4, currentString.indexOf("\","));
-                                    	System.out.print("\tgeneSymbol" + geneSymbol);
-                                    	 if (geneSymbol.equals("")) {
-                                         	geneSymbol = ".";
-                                         }
-                                    	
-                                       // startPos.add(currentString.substring(currentString.indexOf(" : \"") + 4, currentString.indexOf("\",")));
-                                }
-                                   
-                                    
-                                    if (currentString.contains("\"geneId\"")) {
-                                    	geneId = currentString.substring(currentString.indexOf(" : \"") + 4, currentString.indexOf("\","));
-                                    	System.out.print("\tgeneId" + geneId);
-                                    	if (geneId.equals("")) {
-                                         	geneId = ".";
-                                         }
-                                    }
-                                   
-                                    
-                                    
-                                    if (currentString.contains("\"proteinPos\"")) {
-                                    	proteinPos = currentString.substring(currentString.indexOf(" : \"") + 4, currentString.indexOf("\","));
-                                    	System.out.print("\tproteinPos" + proteinPos);
-                                    	if (proteinPos.equals("")) {
-                                    		System.out.print("Je rentree dans if protpos");
-                                         	proteinPos = ".";
-                                         }
-                                    	
-                                   
-                                    	}
-                                    	
-                                    
-                                    
-                                   
-                                    
-                                    if (currentString.contains("\"proteinAcc\"")) {
-                                    	proteinAcc = currentString.substring(currentString.indexOf(" : \"") + 4, currentString.indexOf("\","));
-                                    	System.out.print("\tproteinAcc" + proteinAcc);
-                                    	if (proteinAcc.equals("")) {
-                                    		System.out.print("Je rentree dans if protacc");
-                                        	proteinAcc = ".";
-                                        }
-                                    }
-                                    
-                                
-                                    if (currentString.contains("\"aaCode\"") && passee1 == false) {
-                                    	//aaCode[cpt] = currentString.substring(currentString.indexOf(" : \"") + 4, currentString.indexOf("\","));
-                                    	aa1 = currentString.substring(currentString.indexOf(" : \"") + 4, currentString.indexOf("\","));
-                                    	//System.out.print("\t aacode" + aaCode[cpt]);
-                                    	System.out.print("\t aacode1" + aa1);
-                                    	
-                                    	//System.out.print("\taaCode" + aaCode.get(0) + "\t" aaCode.get(0));
-                                    	
-                                    	//System.out.print("\taaCode" + aaCode.get(i));
-                                    	if (aa1.equals("")) {
-                                    		System.out.print("Je rentree dans if protacc");
-                                    		aa1 = ".";
-                                         	//aaCode = None;
-                                         }
-                                    	
-                                    	passee1 = true;
-                                    }
-                                    if (currentString.contains("\"aaCode\"") && passee1 == true) {
-                                    	
-                                    	aa2 = currentString.substring(currentString.indexOf(" : \"") + 4, currentString.indexOf("\","));
-                                    	
-                                    	System.out.print("\t aacode2" + aa2);
-                                    	
-                                    	if (aa2.equals("")) {
-                                    		System.out.print("Je rentree dans if protacc");
-                                    		aa2 = ".";
-                                        
-                                         }
-                                    
-                                    }
-                                    
-                                   
-                                    if (currentString.contains("\"fxnName\"") && passee == false) {
-                                    	
-                                    	fxnName = currentString.substring(currentString.indexOf(" : \"") + 4, currentString.indexOf("\","));
-                                    	System.out.print("\tfxnName" + fxnName);
-                                    	passee=true;
-                                    	
-                                    	//System.out.print("\t" + fxnName.get(i));
-                                    	if (fxnName.equals("")) {
-                                         	fxnName = ".";
-                                         }
-                                    	
-                                    }
-                                }
-                                System.out.print("\tgeneSymbol à la sortie du while ncbi" + geneSymbol);
-                              //br.close();
-
-//             	           ***********ICI COMMENCE L'EXTRACTION VEP*************
-             	           
-                                System.out.println("****** Content of the URL ********");			
-                         	   JSONParser parser = new JSONParser();
-                         	   String input;
-                         	
-
-                         		  brvep = new BufferedReader(new InputStreamReader(urlvep.openStream()));
-								while ((input = brvep.readLine()) != null){
-									   //System.out.println("brvepin" + brvep);
-									  //System.out.println("brin" + br);
-									 //System.out.println("input\t" + input);
-									 
-									 JSONArray array = (JSONArray) parser.parse(input);
-									 JSONObject JO = (JSONObject) array.get(0);
-									   JSONArray transcript_consequences = (JSONArray)JO.get("transcript_consequences");
-
-								        for(Object obj: transcript_consequences){
-								     	   JSONObject object = (JSONObject) obj;
-								     	   protein_end = String.valueOf(object.get("protein_end"));
-								     	 if ((!(protein_end.equals("null")) && protein_end.equals(proteinPos)))
-								     	 {
-								     		 System.out.println("Je rentre dans le if vep");
-								     	System.out.println("protein_end: " + protein_end);
-								     	System.out.println(obj);
-								     sift_score1 = String.valueOf(object.get("sift_score"));
-								     
-								     System.out.println("sift_score1: " + sift_score1);
-								     if(!(sift_score1.equals("null"))){
-								    	 sift_score = sift_score1;
-								     System.out.println("sift_score: " + sift_score);
-								     }
-								     if((sift_score1.equals("null"))){
-								        	 sift_score = ".";
-								         System.out.println("sift_scorep: " + sift_score);
-								         }
-								     
-								     polyphen_score1 = String.valueOf(object.get("polyphen_score"));
-								     System.out.println("polyphen_score1: " + polyphen_score1);
-								     
-								     if(!(polyphen_score1.equals("null"))){
-								     polyphen_score = polyphen_score1;
-								     System.out.println("polyphen_score: " + polyphen_score);
-								     
-								     }
-								     if((polyphen_score1.equals("null"))){
-								         polyphen_score = ".";
-								         System.out.println("polyphen_scorep: " + polyphen_score);
-								         }
-								     
-
-								     sift_prediction1 = String.valueOf(object.get("sift_prediction"));
-								     System.out.println("sift_prediction1: " + sift_prediction1);
-								     if (!(sift_prediction1.equals("null")))
-								     {
-								    	 sift_prediction = sift_prediction1;
-								    	 System.out.println("sift_prediction: " + sift_prediction);
-								     }
-								     if ((sift_score1.equals("null")))
-								     {
-								    	 sift_prediction = ".";
-								    	 System.out.println("sift_predictionp: " + sift_prediction);
-								     }
-								     
-								     polyphen_prediction1 = String.valueOf(object.get("polyphen_prediction"));
-								     System.out.println("polyphen_prediction1: " + polyphen_prediction1);
-								     if (!(polyphen_prediction1.equals("null")))
-								     {
-								    	 polyphen_prediction = polyphen_prediction1;
-								    	 System.out.println("polyphen_prediction: " + polyphen_prediction);
-								     }
-								     if ((polyphen_prediction1.equals("null")))
-								     {
-								    	 polyphen_prediction = ".";
-								    	 System.out.println("polyphen_predictionp: " + polyphen_prediction);
-								     }
-								     	 } 
-								         
-								        }
-								        
-								        if(proteinPos.equals("."))
-								        
-								        {
-								    	  System.out.println("On rentre dans un if protend = .");
-								        	sift_score = ".";
-								        	polyphen_score = ".";
-								        	sift_prediction = ".";
-								        	polyphen_prediction = ".";
-								        }
-									 
-								   }
-								//br.close();
-								//brvep.close();
-						
-                		    
-//                                while ((currentString1 = br1.readLine()) != null) 
-//                                {
-//                                	System.out.println(currentString1);
-//                                	   if (currentString1.contains("\"mrnaAcc\"")) {
-//                                       	mrnaAcc = currentString1.substring(currentString1.indexOf(" : \"") + 4, currentString1.indexOf("\",")).split("\t");
-//                                       	System.out.print("\tmrnaAcc" + mrnaAcc[0]);
- 
+                    
 
 
                     String[] variantPossibilities;
@@ -1069,8 +740,8 @@ public class FerretData extends SwingWorker<Integer, String> {
                                 genotypes[0][2 * index + 7] = Double.toString(freqZero);
                                 index++;
                             }
-                            //if (!text[4].contains("CN") && (freqZero >= MAF && freqOne >= MAF && freqOne <= MAFMax)) { 
-                            if (!text[4].contains("CN") && (freqZero >= MAF && freqOne >= MAF)) {
+                            //if (!text[4].contains("CN") && (freqZero >= MAF && freqOne >= MAF && freqOne <= MAFMax)) {
+                            if (!text[4].contains("CN") && (freqZero >= MAF && freqOne >= MAF && ((freqOne <= MAFMax) || (freqZero <= MAFMax)))) {
                                 fileEmpty = false;
                                 mapWrite.write(text[0] + "\t" + text[2] + "\t0\t" + text[1]);
                                 mapWrite.newLine();
@@ -1096,102 +767,143 @@ public class FerretData extends SwingWorker<Integer, String> {
                                     snpName = temp.getSNP();
                                 }
                                 frqFileEmpty = false;
-                                
-                                frqWrite.write(temp.getChr() + "\t" + snpName + "\t" + temp.getPos() + "\t"
+
+                                StockLineFreq.put(count,(temp.getChr() + "\t" + snpName + "\t" + temp.getPos() + "\t"
                                         + temp.getRefAllele() + "\t" + temp.getAltAllele() + "\t" + "." + "\t" + "." + "\t"
-                                        + df.format(temp.getEAFreq()) + "\t" + df.format(temp.getAAFreq()));
-                                frqWrite.newLine();
-                                
+                                        + df.format(temp.getEAFreq()) + "\t" + df.format(temp.getAAFreq())));
+
                             }
                         }
-                        // The following line says: if espData is not empty AND esp chr equals 1KG chr AND esp pos equals 1KG pos AND it's biallelic 
+                        // The following line says: if espData is not empty AND esp chr equals 1KG chr AND esp pos equals 1KG pos AND it's biallelic
                         if (!espData.isEmpty() && espData.peek().getChrAsInt() == Integer.parseInt(text[0]) && espData.peek().getPos() == Integer.parseInt(text[1]) && variantPossibilities.length == 2) {
                             EspInfoObj temp = espData.remove();///
                             // 1KG and ESP Ref alleles and Alt alleles match
                             if (variantPossibilities[0].equals(temp.getRefAllele()) && variantPossibilities[1].equals(temp.getAltAllele())) {
-                                if ((freqZero >= MAF && freqOne >= MAF && freqOne <= MAFMax) || (temp.getEAFreq() >= espMAF && temp.getEAFreq() <= (1 - espMAF)) || (temp.getAAFreq() >= espMAF && temp.getAAFreq() <= (1 - espMAF))) {
-                                    frqFileEmpty = false;
-                                    frqWrite.write(text[0] + "\t" + text[2] + "\t" + text[1] + "\t"
+                                if ((freqZero >= MAF && freqOne >= MAF && ((freqOne <= MAFMax) || (freqZero <= MAFMax))) || (temp.getEAFreq() >= espMAF && temp.getEAFreq() <= (1 - espMAF)) || (temp.getAAFreq() >= espMAF && temp.getAAFreq() <= (1 - espMAF))) {
+                                	frqFileEmpty = false;
+                                    StockLineFreq.put(count,(text[0] + "\t" + text[2] + "\t" + text[1] + "\t"
                                             + variantPossibilities[0] + "\t" + variantPossibilities[1] + "\t" + numChr + "\t" + df.format(freqZero) + "\t"
-                                            + df.format(temp.getEAFreq()) + "\t" + df.format(temp.getAAFreq()));
-                                    frqWrite.newLine();
+                                            + df.format(temp.getEAFreq()) + "\t" + df.format(temp.getAAFreq() +"t")));
                                 }
                                 // 1KG and ESP ref/alt alleles are switched
                             } else if (variantPossibilities[0].equals(temp.getAltAllele()) && variantPossibilities[1].equals(temp.getRefAllele())) {
-                                if ((freqOne >= MAF && freqZero >= MAF && freqOne <= MAFMax) || (temp.getEAFreq() >= espMAF && temp.getEAFreq() <= (1 - espMAF)) || (temp.getAAFreq() >= espMAF && temp.getAAFreq() <= (1 - espMAF))) {
-                                    frqFileEmpty = false;
-                                    frqWrite.write(text[0] + "\t" + text[2] + "\t" + text[1] + "\t"
+                                if ((freqOne >= MAF && freqZero >= MAF && ((freqOne <= MAFMax) || (freqZero <= MAFMax))) || (temp.getEAFreq() >= espMAF && temp.getEAFreq() <= (1 - espMAF)) || (temp.getAAFreq() >= espMAF && temp.getAAFreq() <= (1 - espMAF))) {
+                                	frqFileEmpty = false;
+                                    StockLineFreq.put(count,(text[0] + "\t" + text[2] + "\t" + text[1] + "\t"
                                             + variantPossibilities[0] + "\t" + variantPossibilities[1] + "\t" + numChr + "\t" + df.format(freqZero) + "\t"
-                                            + df.format(temp.getEAFreqAlt()) + "\t" + df.format(temp.getAAFreqAlt()));
-                                    frqWrite.newLine();
+                                            + df.format(temp.getEAFreqAlt()) + "\t" + df.format(temp.getAAFreqAlt()+"t")));
                                 }
                                 // ESP does not match with 1KG so ESP omitted
                             } else {
-                                if (freqOne >= MAF && freqZero >= MAF && freqOne <= MAFMax) {
-                                    frqFileEmpty = false;
-                                    frqWrite.write(text[0] + "\t" + text[2] + "\t" + text[1] + "\t"
+                                if (freqOne >= MAF && freqZero >= MAF && ((freqOne <= MAFMax) || (freqZero <= MAFMax))) {
+                                	frqFileEmpty = false;
+                                    StockLineFreq.put(count,(text[0] + "\t" + text[2] + "\t" + text[1] + "\t"
                                             + variantPossibilities[0] + "\t" + variantPossibilities[1] + "\t" + numChr + "\t" + df.format(freqZero) + "\t"
-                                            + "." + "\t" + ".");
-                                    frqWrite.newLine();
+                                            + "." + "\t" + "."+"t"));
                                 }
                                 espErrorCount++;
                             }
                         } else if (variantPossibilities.length == 2) {
-                            if (freqOne >= MAF && freqZero >= MAF && freqOne <= MAFMax) {
-                                frqFileEmpty = false;
-                                frqWrite.write(text[0] + "\t" + text[2] + "\t" + text[1] + "\t"
+                            if (freqOne >= MAF && freqZero >= MAF && ((freqOne <= MAFMax) || (freqZero <= MAFMax))) {
+                            	frqFileEmpty = false;
+                                StockLineFreq.put(count,(text[0] + "\t" + text[2] + "\t" + text[1] + "\t"
                                         + variantPossibilities[0] + "\t" + variantPossibilities[1] + "\t" + numChr + "\t" + df.format(freqZero) + "\t"
-                                        + "." + "\t" + ".");
-                                frqWrite.newLine();
+                                        + "." + "\t" + "."+"t"));
                             }
                         }
                     } else {
-                        if (variantPossibilities.length == 2 && freqOne >= MAF && freqZero >= MAF && freqOne <= MAFMax) {
-                            frqFileEmpty = false;
+                        if (variantPossibilities.length == 2 && freqOne >= MAF && freqZero >= MAF && ((freqOne <= MAFMax) || (freqZero <= MAFMax))) {
+                        	frqFileEmpty = false;
+                            //System.out.print("BECAUSE1 : " + count + "\t" +Varid);
                             if(annotFiles.equals("no"))
                             {
-                            frqWrite.write(text[0] + "\t" + text[2] + "\t" + text[1] + "\t" + variantPossibilities[0] + "\t"
-                                    + variantPossibilities[1] + "\t" + numChr + "\t" + df.format(freqZero) + "\t" + df.format(freqOne));
-                            frqWrite.newLine();
+                            	//System.out.print("BECAUSE2 : " + count + "\t" +Varid);
+                            	StockLineFreq.put(count,(text[0] + "\t" + text[2] + "\t" + text[1] + "\t" + variantPossibilities[0] + "\t"
+                                    + variantPossibilities[1] + "\t" + numChr + "\t" + df.format(freqZero) + "\t" + df.format(freqOne)+"\t"));
                             }
                             if(annotFiles.equals("def"))
                             {
-                            frqWrite.write(text[0] + "\t" + text[2] + "\t" + text[1] + "\t" + variantPossibilities[0] + "\t"
-                                    + variantPossibilities[1] + "\t" + numChr + "\t" + df.format(freqZero) + "\t" + df.format(freqOne) + "\t" + geneSymbol+ "\t" + geneId+ "\t" + fxnName + "\t" + proteinPos + "\t" + aa2 + aa1  + "\t" + proteinAcc);
-                            frqWrite.newLine();
+                            	//System.out.print("BECAUSE3 : " + count + "\t" +Varid);
+                            	StockLineFreq.put(count,(text[0] + "\t" + text[2] + "\t" + text[1] + "\t" + variantPossibilities[0] + "\t"
+                                    + variantPossibilities[1] + "\t" + numChr + "\t" + df.format(freqZero) + "\t" + df.format(freqOne)+"\t")); // + "\t" + geneSymbol+ "\t" + geneId+ "\t" + fxnName + "\t" + proteinPos + "\t" + aa2 + aa1  + "\t" + proteinAcc);
                             }
                             if(annotFiles.equals("adv"))
                             {
-                            frqWrite.write(text[0] + "\t" + text[2] + "\t" + text[1] + "\t" + variantPossibilities[0] + "\t"
-                                    + variantPossibilities[1] + "\t" + numChr + "\t" + df.format(freqZero) + "\t" + df.format(freqOne) + "\t" + geneSymbol + "\t" + geneId+ "\t" + fxnName + "\t" + proteinPos + "\t" + aa2 + aa1  + "\t" + proteinAcc + "\t" + sift_score+ "\t" + sift_prediction+ "\t" + polyphen_score+ "\t" + polyphen_prediction);
-                            frqWrite.newLine();
+                            	//System.out.print("BECAUSE4 : " + count + "\t" + Varid);
+                            	StockLineFreq.put(count,(text[0] + "\t" + text[2] + "\t" + text[1] + "\t" + variantPossibilities[0] + "\t"
+                                    + variantPossibilities[1] + "\t" + numChr + "\t" + df.format(freqZero) + "\t" + df.format(freqOne)+"\t"));
+                            	//System.out.print("BECAUSEOFYOU-----> : " + StockLineFreq + "\t" + Varid + "\t" + count);
                             }
                         }
                     }
-                    
-                			} catch (IOException e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
-								}catch (Exception e2) {
-				              	     e2.printStackTrace();
-			                    }
-                    
-                		 } catch (IOException e) {
-                         }
-                    
-                  }
-                	
-               };                         	   
-       	 executor.execute(worker);   
-   
+                    //System.out.println("StockLineFreq[count] : " + StockLineFreq[count]);
+
+                    count++;
+                   
                 }
+            
+                System.out.println("count = " + count);
+               
+
+
                 executor.shutdown();
               	// Wait until all threads are finish
               	while (!executor.isTerminated()) {
-      
+
               	}
-              	System.out.println("\nFinished all threads");
+            
               	
+              	System.out.println("\nFinished all threads");
+              	 File freqFile = new File(fileName + "_Summary.txt");
+                 freqFile.createNewFile();
+                 frqWrite = new BufferedWriter(new FileWriter(freqFile));
+                 if (retrieveESP) {
+                	// System.out.print("BECAUSE5 : " + count + "\t" +Varid);
+                     frqWrite.write("CHROM\tVARIANT\tPOS\tALLELE1\tALLELE2\tNB_1KG_CHR\t1KG_A1_FREQ\tESP6500_EA_A1_FREQ\tESP6500_AA_A1_FREQ\tGENENAME\tGENEID\tFUNCTION\tPROTEINPOS\tAACHANGE\tPROTEINACC");
+                  
+                     frqWrite.newLine();
+                 } else {
+                 	if(annotFiles.equals("no")){
+                 		//System.out.print("BECAUSE6 : " + count + "\t" +Varid);
+                     frqWrite.write("CHROM\tVARIANT\tPOS\tALLELE1\tALLELE2\tNB_CHR\t1KG_A1_FREQ\t1KG_A2_FREQ");
+                     frqWrite.newLine();
+                 	}
+                 	if(annotFiles.equals("def")){
+                 		//System.out.print("BECAUSE7 : " + count + "\t" +Varid);
+                         frqWrite.write("CHROM\tVARIANT\tPOS\tALLELE1\tALLELE2\tNB_CHR\t1KG_A1_FREQ\t1KG_A2_FREQ\tGENENAME\tGENEID\tFUNCTION\tPROTEINPOS\tAACHANGE\tPROTEINACC");
+                         frqWrite.newLine();
+                     	}
+                 	if(annotFiles.equals("adv")){
+                 		//System.out.print("BECAUSE8 : " + count + "\t" +Varid);
+                 		frqWrite.write("CHROM\tVARIANT\tPOS\tALLELE1\tALLELE2\tNB_CHR\t1KG_A1_FREQ\t1KG_A2_FREQ\tGENENAME\tGENEID\tFUNCTION\tPROTEINPOS\tAACHANGE\tPROTEINACC\tRBDB_SCORE\tRBDB_PREDICTION\tSIFT_SCORE\tSIFT_PREDICTION\tPOLYPHEN_SCORE\tPOLYPHEN_PREDICTION\tPROVEAN_SCORE\tPROVEAN_PREDICTION\tCADD_SCORE");
+                 		frqWrite.newLine();
+                     	}
+                 }
+
+                System.out.println();
+
+                for (int i = 0; i < count; i++) {
+                	 if(StockLineFreq.get(i) == null){
+                		 //System.out.println("StockLineFreq: idx ("+ i +") not exist");
+                	 }
+                	 else if(AnnotThreading.StockLineAnnotdef.get(i) == null && AnnotThreading.StockLineAnnotadv.get(i) == null){
+                		 //System.out.println("StockLineAnnot: idx ("+ i +") not exist");
+                	 }
+                	 else{
+                		//System.out.println("StockLineFreq ----->" + StockLineFreq.get(i)+ "\tStockLineAnnot ----->" + AnnotThreading.StockLineAnnot.get(i));
+                		 if(annotFiles.equals("no")){
+                			 frqWrite.write(StockLineFreq.get(i) +"\n");
+                		 }
+                		 if(annotFiles.equals("def")){
+                			 frqWrite.write(StockLineFreq.get(i) +  AnnotThreading.StockLineAnnotdef.get(i) +"\n");
+                		 }
+                		 if(annotFiles.equals("adv")){
+                		 
+                         frqWrite.write(StockLineFreq.get(i) +  AnnotThreading.StockLineAnnotdef.get(i) +  AnnotThreading.StockLineAnnotadv.get(i) +"\n");
+                     }
+                		 
+                	 }
+                 }
                 // this bracket marks the end of VCF reading
                 // Don't need to have MAF threshold here, because not written to genotypes array if MAF too low
                 if (outputFiles == "all") {
@@ -1203,7 +915,7 @@ public class FerretData extends SwingWorker<Integer, String> {
                         // Write information about genotypes
                         for (int j = 6; j < index * 2 + 6; j++) {
                             if (Double.parseDouble(genotypes[0][j]) >= MAF && (1 - Double.parseDouble(genotypes[0][j])) >= MAF && (Double.parseDouble(genotypes[0][j]) <= MAFMax || (1 - Double.parseDouble(genotypes[0][j])) <= MAFMax)) {
-                                pedWrite.write(genotypes[i + 1][j] + "\t");
+                            	pedWrite.write(genotypes[i + 1][j] + "\t");
                             }
                         }
                         pedWrite.newLine();
@@ -1216,52 +928,63 @@ public class FerretData extends SwingWorker<Integer, String> {
                         new File(fileName + ".info").delete();
                         new File(fileName + ".map").delete();
                     }
-   
+
                 }
 
-                
+
                 frqWrite.close();
                 vcfRead.close();
                 File vcfFile = new File(fileName + "_genotypes.vcf");
                 vcfFile.delete();
                 if (frqFileEmpty) {
+                	System.out.print("OUI");
                     freqFile.delete();
                     return -3;
                 }
+				try {
+					conn.close();
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+            	if(htmlOutputFile) {
+					HtmlOutput html = new HtmlOutput(freqFile.getAbsolutePath(), freqFile.getName());
+					html.writeFile(annotFiles);
+				}
             }
             catch (IOException e) {
                 return -1;
-            }       
-
-
-            
-            
-            //model.mergeFiles(gui);
+            }
             setProgress(100);
             System.out.println("Finished");
-            
+
         }
-        if (usehaplo) {
-           
+//        if (usehaplo) {
+//        	Process proc;
+//            try {
+//            	//Process  proc = Runtime.getRuntime().exec("java -jar \"/FerretMVC/Haploview.jar\"");
+//            	proc = Runtime.getRuntime().exec("java -jar \"Haploview.jar\" -pedfile \"" + fileName + ".ped\" -info \"" + fileName + ".info\"");
+//            } catch (IOException e) {
+//            }
+//        }
+        if (downloadHaplo) {
+        	Process proc;
             try {
-            	 //File file = new File("/home/rokhaya/Menu.html");
-            	Process  proc = Runtime.getRuntime().exec("java -jar \"/FerretMVC/Haploview.jar\"");
-            	 //Process  proc = Runtime.getRuntime().exec("java -jar \"Haploview.jar\" -pedfile \"" + fileName + "_m.ped\" -info \"" + fileName + "_m.info\"");
-            	//Desktop.getDesktop().open(file);
+            	//Process  proc = Runtime.getRuntime().exec("java -jar \"/FerretMVC/Haploview.jar\"");
+            	proc = Runtime.getRuntime().exec("java -jar \"Haploview.jar\" -pedfile \"" + fileName + ".ped\" -info \"" + fileName + ".info\"");
             } catch (IOException e) {
             }
         }
-        return 1;   
+        return 1;
     }
 
-     
+
     @Override
     protected void process(List<String> processStatus) {
         int statusIndex = processStatus.size();
         status.setText(processStatus.get(statusIndex - 1));
     }
 
-    protected static boolean isInteger(String str) {
+    public static boolean isInteger(String str) {
         if (str == null) {
             return false;
         }
@@ -1327,9 +1050,11 @@ public class FerretData extends SwingWorker<Integer, String> {
     }
 
     public static String getPeopleStringPhase3(String chrNum) {
-        // helper method for the below method
-        String s = null;
+
+    	System.out.println("phase 3");
+    	  String s = null;
         try {
+        	
             //String webAddress = "ftp://ftp-trace.ncbi.nih.gov/1000genomes/ftp/release/20130502/ALL.chr" + chrNum + ".phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes.vcf.gz";
             String webAddress = "http://ftp.1000genomes.ebi.ac.uk/vol1/ftp/release/20130502/ALL.chr" + chrNum + ".phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes.vcf.gz";
             // Prepares objects for file writing
@@ -1339,13 +1064,16 @@ public class FerretData extends SwingWorker<Integer, String> {
             while (!s.contains("CHROM")) {
                 s = tr.readLine();
             }
+            
         } catch (IOException | RuntimeException e) {
         }
         return s;
+
     }
 
     public static String getPeopleStringPhase3GRCh38(String chrNum) {
         // helper method for the below method
+    	System.out.println("phase 3 38");
         String s = null;
         try {
             String webAddress = "http://ftp.1000genomes.ebi.ac.uk/vol1/ftp/release/20130502/supporting/GRCh38_positions/ALL.chr" + chrNum + ".phase3_shapeit2_mvncall_integrated_v3plus_nounphased.rsID.genotypes.GRCh38_dbSNP_no_SVs.vcf.gz";
@@ -1358,12 +1086,15 @@ public class FerretData extends SwingWorker<Integer, String> {
             }
         } catch (IOException | RuntimeException e) {
         }
+        
         return s;
     }
 
     public static String getPeopleStringPhase1(String chrNum) {
         // helper method for the below method
-        String s = null;
+    	System.out.println("phase 1");
+    	String s = null;
+    		 
         try {
             //ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/release/20110521/
             String webAddress = "http://ftp.1000genomes.ebi.ac.uk/vol1/ftp/release/20110521/ALL.chr" + chrNum + ".phase1_release_v3.20101123.snps_indels_svs.genotypes.vcf.gz";
@@ -1373,8 +1104,10 @@ public class FerretData extends SwingWorker<Integer, String> {
             while (!s.contains("CHROM")) {
                 s = tr.readLine();
             }
+            
         } catch (IOException | RuntimeException e) {
         }
+
         return s;
     }
 
@@ -1603,7 +1336,7 @@ public class FerretData extends SwingWorker<Integer, String> {
     }
 
     public static FoundGeneAndRegion getQueryFromGeneID(String[] geneListArray, boolean defaultHG) {
-        
+
         if (geneListArray.length == 0) {
             return null;
         }
@@ -1854,10 +1587,10 @@ public class FerretData extends SwingWorker<Integer, String> {
         foundGenes.deleteCharAt(foundGenes.length() - 1);
         return new FoundGeneAndRegion(foundGenes.toString(), queriesFound, queryArrayList.size() == geneListArray.length);
     }
-    
-   
+
+
 //   public void regex(String varid) {
-//	   Pattern p = Pattern.compile("[0-9]+"); 
+//	   Pattern p = Pattern.compile("[0-9]+");
 //	   Matcher m = p.matcher(varid);
 //		while(m.find())
 //		{
@@ -1865,5 +1598,5 @@ public class FerretData extends SwingWorker<Integer, String> {
 //			System.out.println("mgroup1" + m.group(1)); // Le contenu entre <b> et </b>
 //		}
 //}
-    
+   
 }

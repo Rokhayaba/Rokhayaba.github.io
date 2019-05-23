@@ -10,8 +10,11 @@ package com.ecn.ferretmvc.view;
 // import classes
 import java.awt.Color;
 import java.awt.Component;
+
 import static java.awt.Component.CENTER_ALIGNMENT;
 import static java.awt.Component.LEFT_ALIGNMENT;
+
+import java.awt.BorderLayout;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -23,8 +26,11 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.text.NumberFormat;
 import java.util.Hashtable;
+
 import javax.swing.*;
+
 import static javax.swing.WindowConstants.DISPOSE_ON_CLOSE;
+
 import javax.swing.event.ChangeListener;
 
 public class GUI extends JFrame {
@@ -42,7 +48,7 @@ public class GUI extends JFrame {
     String[] amrCode = {"AMR", "CLM", "MXL", "PEL", "PUR"};
     String[] sanCode = {"SAS", "BEB", "GIH", "ITU", "PJL", "STU"};
     String[] allracesString = {"ALL"};
-    static JFrame snpFerret = new JFrame("Ferret v2.1.2");
+    static JFrame snpFerret = new JFrame("Ferret v3.0");
     JLabel afrLabel = new JLabel("Africans");
     JLabel eurLabel = new JLabel("Europeans");
     JLabel asnLabel = new JLabel("East Asians");
@@ -137,9 +143,8 @@ public class GUI extends JFrame {
     JPanel amrPanel = new JPanel();
     JPanel sanPanel = new JPanel();
     JPanel allracesPanel = new JPanel();
-    JButton goButton = new JButton("Download the data !");
-    //JButton testButton = new JButton("Test!");
-    JButton goHaplo = new JButton("Download and Visualize the data with HaploView !");
+    JButton goButton = new JButton("Run Ferret, Run !");
+    //JButton goHaplo = new JButton("Download and Visualize the data with HaploView !");
     JButton browseButton = new JButton("Browse");
     JFileChooser openFileChooser = new JFileChooser();
     JScrollPane scrollBigPanel = new JScrollPane(bigPanel);
@@ -171,22 +176,25 @@ public class GUI extends JFrame {
     JMenuItem aboutMenuItem = new JMenuItem("About Ferret");
     JMenuItem faqMenuItem = new JMenuItem("FAQ");
     JMenuItem contactMenuItem = new JMenuItem("Contact");
-    JLabel questionMarkMAFThreshold = new JLabel(questionMark);
-    JLabel questionMarkESPMAF = new JLabel(questionMark);
+//    JLabel questionMarkMAFThreshold = new JLabel(questionMark);
+//    JLabel questionMarkESPMAF = new JLabel(questionMark);
 
     //Settings pane:
     JFrame settingsFrame = new JFrame("Settings");
     JPanel settingsPanel = new JPanel();
     JTextField vcfURLText = new JTextField();
     JTextField fileNomenclatureText = new JTextField();
-    JSlider mafSlider = new JSlider(0, 5000, 0);
-    JSlider mafSliderMax = new JSlider(0, 5000, 0);
+    RangeSlider mafSlider = new RangeSlider(0, 5000);
+//    JSlider mafSlider = new JSlider(0, 5000, 0);
+//    JSlider mafSliderMax = new JSlider(0, 5000, 0);
     JRadioButton phase3Button = new JRadioButton("Phase 3 (2,504 individuals) [default]");
     JRadioButton phase1Button = new JRadioButton("Phase 1 (1,092 individuals)");
     ButtonGroup vcfRadioButtons = new ButtonGroup();
     JRadioButton allFilesButton = new JRadioButton("Allele Frequencies (.frq) + Plink/HaploView (.map/.ped/.info) [default]");
     JRadioButton freqFileButton = new JRadioButton("Allele Frequencies (.frq) only");
     JRadioButton vcfFileButton = new JRadioButton("VCF file only");
+    JCheckBox htmlFileButton = new JCheckBox ("HTML file (recommended)");
+    JCheckBox downloadHaploButton = new JCheckBox ("Download and visualize the data with Haploview");
     ButtonGroup fileOutputButtons = new ButtonGroup();
     JRadioButton version19Button = new JRadioButton("hg19/GRCh37 [default]");
     JRadioButton version38Button = new JRadioButton("hg38/GRCh38 [only available for Phase 3 data]");
@@ -209,8 +217,12 @@ public class GUI extends JFrame {
     JPanel mafESPPanel = new JPanel();
     JPanel vcfVersionPanel = new JPanel();
     JPanel settingsButtonPanel = new JPanel();
+    JPanel annotPanel = new JPanel();
+    JPanel annotButtonPanel = new JPanel();
     JCheckBox espMAF = new JCheckBox("Apply MAF threshold to the Exome Sequencing Project");
-
+    JLabel questionMarkMAFThreshold = new JLabel(questionMark);
+    JLabel questionMarkESPMAF = new JLabel(questionMark);
+    JLabel questionMarkAnnotations = new JLabel(questionMark);
     //About window
     JFrame aboutFrame = new JFrame("About");
     JPanel aboutPanel = new JPanel();
@@ -236,6 +248,8 @@ public class GUI extends JFrame {
     final static version1KG[] currVersion = {version1KG.THREE};
     final static fileOutput[] currFileOut = {fileOutput.ALL};
     final static annotOutput[] currAnnot = {annotOutput.NO};
+    boolean htmlFile = true;
+    boolean downloadHaplo = true;
     final static Boolean[] defaultHG = {true};
     final static double[] mafThreshold = {0.0};
     final static double[] mafThresholdMax = {0.5};
@@ -270,6 +284,18 @@ public class GUI extends JFrame {
 
     public fileOutput[] getCurrFileOut() {
         return currFileOut;
+    }
+    public boolean isHtmlFile() {
+        return htmlFile;
+    }
+    public boolean isdownloadHaplo() {
+        return downloadHaplo;
+    }
+    public void setHtmlFile(boolean htmlFile) {
+        this.htmlFile = htmlFile;
+    }
+    public void setdownloadHaplo(boolean downloadHaplo) {
+        this.downloadHaplo = downloadHaplo;
     }
     public annotOutput[] getCurrAnnot() {
         return currAnnot;
@@ -527,12 +553,8 @@ public class GUI extends JFrame {
         return settingsFrame;
     }
 
-    public JSlider getMafSlider() {
+    public RangeSlider getMafSlider() {
         return mafSlider;
-    }
-
-    public JSlider getMafSliderMax() {
-        return mafSliderMax;
     }
 
     public JRadioButton getPhase3Button() {
@@ -554,7 +576,13 @@ public class GUI extends JFrame {
     public JRadioButton getVcfFileButton() {
         return vcfFileButton;
     }
-
+    
+    public JCheckBox getHtmlFileButton() {
+        return htmlFileButton;
+    }
+    public JCheckBox getdownloadHaploButton() {
+        return downloadHaploButton;
+    }
     public JRadioButton getVersion19Button() {
         return version19Button;
     }
@@ -583,7 +611,10 @@ public class GUI extends JFrame {
     public JFrame getContactFrame() {
         return contactFrame;
     }
-
+    
+    public void setMafSlider(RangeSlider mafSlider) {
+        this.mafSlider = mafSlider;
+    }
     // Constructor GUI
     public GUI() {
         LinkLabel ferretWebLabelAbout = null;
@@ -699,21 +730,21 @@ public class GUI extends JFrame {
         mafSlider.setValue(0);
         mafSlider.setPaintLabels(true);
         mafPanel.add(mafSlider);
-
+        mafSlider.setUpperValue(5000);
         mafTextMax.setColumns(5);
         mafTextMax.setMaximumSize(mafTextMax.getPreferredSize());
         mafTextMax.setValue(0.5);
         mafPanel.add(mafTextMax);
 
-        mafSliderMax.setMajorTickSpacing(1000);
-        mafSliderMax.setPaintTicks(true);
-        Hashtable labelTable2 = new Hashtable();
-        labelTable2.put(0, new JLabel("0.0"));
-        labelTable2.put(5000, new JLabel("0.5"));
-        mafSliderMax.setLabelTable(labelTable2);
-        mafSliderMax.setValue(5000);
-        mafSliderMax.setPaintLabels(true);
-        mafPanel.add(mafSliderMax);
+//        mafSliderMax.setMajorTickSpacing(1000);
+//        mafSliderMax.setPaintTicks(true);
+//        Hashtable labelTable2 = new Hashtable();
+//        labelTable2.put(0, new JLabel("0.0"));
+//        labelTable2.put(5000, new JLabel("0.5"));
+//        mafSliderMax.setLabelTable(labelTable2);
+//        mafSliderMax.setValue(5000);
+//        mafSliderMax.setPaintLabels(true);
+//        mafPanel.add(mafSliderMax);
 
         mafPanel.add(questionMarkMAFThreshold);
         questionMarkMAFThreshold.setToolTipText("<html>The MAF threshold is applied to the selected 1000 Genomes populations<br>"
@@ -738,13 +769,16 @@ public class GUI extends JFrame {
         settingsPanel.add(allFilesButton);
         settingsPanel.add(freqFileButton);
         settingsPanel.add(vcfFileButton);
-
+        settingsPanel.add(htmlFileButton);
+        settingsPanel.add(downloadHaploButton);
         // setActionCommand
         allFilesButton.setActionCommand("allFilesButton");
         freqFileButton.setActionCommand("freqFileButton");
         vcfFileButton.setActionCommand("vcfFilesButton");
 
         allFilesButton.setSelected(true);
+        htmlFileButton.setSelected(true);
+        //freqFileButton.setSelected(true);
         settingsPanel.add(Box.createRigidArea(new Dimension(0, 5)));
         settingsPanel.add(hgVersionLabel);
         hgVersionLabel.setFont(new Font("SansSerif", Font.BOLD, 16));
@@ -759,10 +793,23 @@ public class GUI extends JFrame {
         annotButtons.add(no_annot);
         annotButtons.add(default_annot);
         annotButtons.add(advanced_annot);
-        settingsPanel.add(no_annot);
-        settingsPanel.add(default_annot);
-        settingsPanel.add(advanced_annot);
+        annotPanel.setLayout(new BoxLayout(annotPanel, BoxLayout.X_AXIS));
+        annotPanel.setAlignmentX(LEFT_ALIGNMENT);
+        annotPanel.add(annotButtonPanel, BorderLayout.WEST);
+        annotButtonPanel.setLayout(new GridLayout(3, 1));
+        annotButtonPanel.add(no_annot);
+        annotButtonPanel.add(default_annot);
+        annotButtonPanel.add(advanced_annot);
+//        settingsPanel.add(no_annot);
+//        settingsPanel.add(default_annot);
+//        settingsPanel.add(advanced_annot);
         no_annot.setSelected(true);
+        //advanced_annot.setSelected(true);
+        annotPanel.add(questionMarkAnnotations, BorderLayout.CENTER);
+        questionMarkAnnotations.setToolTipText("<html>RegulomDB Score:<br><strong>Score 1a, 1b, 1c, 1d, 1e, 1f:</strong> Likely to affect binding and linked to expression of a gene target<br>"+
+                "<strong>Score 2a, 2b, 2c:</strong> Likely to affect binding<br><strong>Score 3a, 3b:</strong> Less likely to affect binding<br><strong>Score 4, 5, 6:</strong> Minimal Binding evidence<br>"+
+                "<strong>Score 7:</strong> No data");
+        settingsPanel.add(annotPanel);
         
         settingsButtonPanel.setAlignmentX(LEFT_ALIGNMENT);
         settingsButtonPanel.setLayout(new BoxLayout(settingsButtonPanel, BoxLayout.X_AXIS));
@@ -1016,6 +1063,8 @@ public class GUI extends JFrame {
                 eursub[i].setEnabled(false);
             }
         }
+        // A supprimer à la fin des tests
+        //eursub[2].setSelected(true);
 
         kgPopulationPanel.add(sanPanel);
         sanPanel.setLayout(new GridLayout(9, 1));
@@ -1040,11 +1089,10 @@ public class GUI extends JFrame {
         fileChoosePanel.add(fileLocation);
         bigPanel.add(goPanel);
         goPanel.add(goButton);
-        //goPanel.add(testButton);
-        goPanel.add(goHaplo);
+        //goPanel.add(goHaplo);
         //testButton.setPreferredSize(new Dimension(320, 60));
         goButton.setPreferredSize(new Dimension(320, 60));
-        goHaplo.setPreferredSize(new Dimension(400, 60));
+        //goHaplo.setPreferredSize(new Dimension(400, 60));
         goPanel.setBackground(Color.gray);
         bigPanel.add(Box.createVerticalGlue());
         snpFerret.pack();
@@ -1080,12 +1128,11 @@ public class GUI extends JFrame {
         sansub[0].setActionCommand("sansub[0]");
         browseButton.setActionCommand("browseButton");
         goButton.setActionCommand("goButton");
-        //testButton.setActionCommand("testButton");
-        goHaplo.setActionCommand("goHaplo");
+        //goHaplo.setActionCommand("goHaplo");
         mafText.setName("mafText");
         mafTextMax.setName("mafTextMax");
         mafSlider.setName("mafSlider");
-        mafSliderMax.setName("mafSliderMax");
+        //mafSliderMax.setName("mafSliderMax");
 
     }
 
@@ -1153,6 +1200,7 @@ public class GUI extends JFrame {
             eursub[i].setSelected(false);
             eursub[i].updateUI();
         }
+        
     }
 
     public void setAmerican(int start, boolean state) {
@@ -1298,7 +1346,7 @@ public class GUI extends JFrame {
                 }
             }
         }
-
+       
         eursub[0].setText("EUR All Europeans (n=503)");
         eursub[1].setText("CEU CEPH (n=99)");
         eursub[2].setText("GBR British (n=91)");
@@ -1391,6 +1439,8 @@ public class GUI extends JFrame {
         advanced_annot.addActionListener(a);
         allFilesButton.addActionListener(a);
         freqFileButton.addActionListener(a);
+        htmlFileButton.addActionListener(a);
+        downloadHaploButton.addActionListener(a);
         vcfFileButton.addActionListener(a);
         version19Button.addActionListener(a);
         version38Button.addActionListener(a);
@@ -1400,7 +1450,7 @@ public class GUI extends JFrame {
 
     public void settingsChangeListener(ChangeListener c) {
         mafSlider.addChangeListener(c);
-        mafSliderMax.addChangeListener(c);
+        //mafSliderMax.addChangeListener(c);
     }
 
     public void settingsPropertyChangeListener(PropertyChangeListener p) {
@@ -1437,7 +1487,8 @@ public class GUI extends JFrame {
     public void downloadTheDataListener(ActionListener a) {
         goButton.addActionListener(a);
         //testButton.addActionListener(a);
-        goHaplo.addActionListener(a);
+        //goHaplo.addActionListener(a);
+        
     }
 
 }

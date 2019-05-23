@@ -40,5 +40,6 @@
 	<classpathentry exported="true" kind="lib" path="C:/Users/e300264/Downloads/javax.json-api-1.0.jar"/>
 	<classpathentry exported="true" kind="lib" path="C:/Users/e300264/Downloads/json-simple-1.1.jar.zip"/>
 	<classpathentry exported="true" kind="lib" path="C:/Users/e300264/Downloads/json-simple-1.1.jar/json-simple-1.1.jar"/>
+	<classpathentry kind="src" path="resource"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

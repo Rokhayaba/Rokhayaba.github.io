@@ -33,20 +33,20 @@ public class DownloadTheDataController implements ActionListener {
     public void actionPerformed(ActionEvent e) {
         //Retriving the ActionCommand ie. the String associated with the button clicked
         String viewAction = e.getActionCommand();
-        if (viewAction.equals("goHaplo")) {
-            model.performSearchAndDownload(gui, true);
-            model.hla_request(gui);
-            //model.hla_extraction(gui,Genename, 0, null, null, null );
-        } 
+//        if (viewAction.equals("goHaplo")) {
+//            model.performSearchAndDownload(gui, true);
+//            model.hla_request(gui);
+//            //model.hla_extraction(gui,Genename, 0, null, null, null );
+//        } 
 //        if (viewAction.equals("testButton")) {
 //            model.connect(gui);
 //        }
         
-        else {
-            model.performSearchAndDownload(gui, false);
+       
+            model.performSearchAndDownload(gui);
             model.hla_request(gui);
             //model.hla_extraction(gui,Genename, 0, null, null, null);
             //model.
-        }
+        
     }
 }
