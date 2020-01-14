@@ -21,7 +21,6 @@ public class ThreadingsnpQueries implements Runnable {
     boolean allSNPsFound;
     BufferedReader br = null;
     Boolean defaultHG;
-    //boolean chrFound, startFound, endFound, locatedOnInvalidChr;
     URL urlLocation;
     int i;
 
@@ -35,17 +34,11 @@ public class ThreadingsnpQueries implements Runnable {
 		   this.SNPsFound = SNPsFound;
 		    this.allSNPsFound = allSNPsFound;
 		    this.defaultHG = defaultHG;
-//		    this.chrFound = chrFound;
-//		    this.startFound = startFound;
-//		    this.endFound = endFound;
-//		    this.locatedOnInvalidChr = locatedOnInvalidChr;
 		    this.urlLocation = urlLocation;
 		    this.i = i;
 			
 			 			}
-		
-		
- 
+
 		@Override
 		public void run() {
 			
@@ -96,7 +89,6 @@ public class ThreadingsnpQueries implements Runnable {
                 
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
-					System.out.println("SPECIFIQUE --->w");
 					e.printStackTrace();
 				} finally {
 	                if (br != null) {
@@ -109,7 +101,5 @@ public class ThreadingsnpQueries implements Runnable {
 	            }
             
             }
-		
-		
 
 }

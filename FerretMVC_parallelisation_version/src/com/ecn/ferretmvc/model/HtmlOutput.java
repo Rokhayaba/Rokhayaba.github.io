@@ -7,6 +7,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.URISyntaxException;
 import java.util.Arrays;
 
@@ -60,8 +61,9 @@ public class HtmlOutput {
 	 * @param annot
 	 *            Specifies which option of annotations is selected : no, default,
 	 *            advanced. Used to write the head lines of the html table.
+	 * @throws URISyntaxException 
 	 */
-	public void writeFile(String annot) {
+	public void writeFile(String annot) throws URISyntaxException {
 		if (htmlWriter == null) {
 			JOptionPane.showMessageDialog(null, "I/O exception occured, Ferret was unable to write html file", "Error",
 					JOptionPane.OK_OPTION);
@@ -106,7 +108,10 @@ public class HtmlOutput {
 				// End of the html file
 				write("</table>", 2);
 				write("</body>", 1);
+				writeHtmlFooter();
+				//write("<footer> <p> Bonjour </p> </footer>",5);
 				write("</html>", 0);
+				
 
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -145,29 +150,11 @@ public class HtmlOutput {
 	 * Copies the .css file found in the src folder, into the header of the html
 	 * file
 	 */
-	private void copyCss() {
+	private void copyCss() throws URISyntaxException, IOException {
 		BufferedReader cssReader = null;
 		String str;
-		// Instantiates the buffered reader with the css file found in the resource
-		// folder of the jar
-		try {
-			cssReader = new BufferedReader(
-					new FileReader(new File(getClass().getResource("/style.css").toURI().getPath())));
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (URISyntaxException e) {
-			e.printStackTrace();
-		}
-		if (cssReader == null) {
-			// if instantiation failed, an error message is added at the beginning of the
-			// html file and html code is left raw
-			try {
-				write("<p>Ferret was unable to retrieve the css file, the current page is just raw html.</p>", 2);
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		} else {
-			// writes the <style> tags and copies the css file
+					cssReader = new BufferedReader(new InputStreamReader(FerretData.class.getClassLoader().getResourceAsStream("style.css")));
+
 			try {
 				write("<style type=\"text/css\">", 2);
 				str = cssReader.readLine();
@@ -179,7 +166,6 @@ public class HtmlOutput {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-		}
 	}
 
 	/**
@@ -214,12 +200,6 @@ public class HtmlOutput {
 				write("<th>Protein acc</th>", 5);
 			}
 
-			// The only column specific to default annotations. Kept at the right extremity
-			// of the array.
-//			if (annot.equals("def")) {
-//				write("<th>Other variants</th>", 5);
-//			}
-
 			// Only advanced notifications
 			if (annot.equals("adv")) {
 				write("<th>RegulomeDB score</th>", 5);
@@ -234,6 +214,39 @@ public class HtmlOutput {
 			}
 
 			write("</tr>", 4);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	private void writeHtmlFooter() {
+		try {
+			write("<footer class=\"site-footer\">",5);
+			write("<div class=\"container\">",5);
+			write("<div class=\"row\">",5);
+	          write("<h6>Databases Versions</h6>",4);
+	          write("<ul class=\"footer-links\">",4);
+	          write("<li><b>Annovar</b> : v3.5a 2018Sep20 querying dbNSFP35a<a href=\"http://annovar.openbioinformatics.org/en/latest/\"> (more infos)</a></li>",4);
+              write("<li><b>RegulomeDB</b> : v1.1 querying dbSNP141<a href=\"http://www.regulomedb.org/\">(more infos)</a></li>",4);
+              write("<li><b>Sift</b> : v4.0.3 from Annovar v3.5a <a href=\"https://sift.bii.a-star.edu.sg/\">(more infos)</li></a></li>",4);
+              write("<li><b>Polyphen</b> : v2 from Annovar 3.5a <a href=\"http://genetics.bwh.harvard.edu/pph2/\">(more infos)</li></a></li>",4);
+              write("<li><b>Provean</b> : v1.1 from Annovar 3.5a <a href=\"http://provean.jcvi.org/index.php\">(more infos)</li></a></li>",4);
+              write("<li><b>CADD</b> : v1.4 from Annovar 3.5a <a href=\"https://cadd.gs.washington.edu/\">(more infos)</li></a></li>",4);
+            write("</ul></div>",5);
+          write("<h6>About Ferret</h6>",4);
+          write("<ul class=\"footer-links\">",4);
+            write("<li><a href=\"http://limousophie35.github.io/Ferret/\">Website</a></li>",4);
+            write("<li><a href=\"https://academic.oup.com/bioinformatics/article/32/14/2224/1742826\">Publication</a></li>",4);
+            write("</ul>",5);
+            write("</div>",5);
+            write("</div>",5);
+            write("<hr>",5);
+            write("</div>",5);
+            write("<div class=\"container\">",5);
+            write("<div class=\"row\">",5);
+          write("<p class=\"copyright-text\">Copyright &copy; 2019 All Rights Reserved by <a href=\"http://www.itun.nantes.inserm.fr/Team-5\">Team5 CRTI</a></p>",4);
+        write("</div></div></div>",4);
+write("</footer>",5);
+	          
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -266,7 +279,7 @@ public class HtmlOutput {
 				str = frqReader.readLine();
 				str = frqReader.readLine();
 				System.out.println("str :" + str );
-				String vert = "vert";
+				String green = "green";
 				String red = "red";
 				String orange = "orange";
 			
@@ -300,14 +313,7 @@ public class HtmlOutput {
 							write("<td><a href = \"https://www.ncbi.nlm.nih.gov/gene/" + s + "\">" + s + "</td>", 5);
 							}
 							break;
-//						case 13:
-//							if (annot.equals("def")) {
-//								write("<td><a href = \"https://www.ncbi.nlm.nih.gov/gene/" + strSplit[9] + "\"></td>",
-//										5);
-//							} else {
-//								write("<td>" + s + "</td>", 5);
-//							}
-							//break;
+
 						case 14:
 							// RegulomeDB links displays the rsid in the title if the position is decremented
 							// by 1, else it displays "n/a". Other information in the page are the same if
@@ -315,14 +321,9 @@ public class HtmlOutput {
 							String c;
 							if (s.equals("not in the base")) {
 								c = "The variant is not in the database but exists online";
-//								write("<td class = \"" + c + "\"><a href = \"http://www.regulomedb.org/snp/chr"
-//										+ strSplit[0] + "/" + String.valueOf(Integer.parseInt(strSplit[2]) - 1)
-//										+ "\">Not in the base, link works though</td>", 5);
+
 							} else {
 								c = s;
-//								write("<td class = \"" + c + "\"><a href = \"http://www.regulomedb.org/snp/chr"
-//										+ strSplit[0] + "/" + String.valueOf(Integer.parseInt(strSplit[2]) - 1)
-//										+ "\">" + c +"</td>", 5);
 							}
 							
 							write("<td class = \"" + c + "\"><a href = \"http://www.regulomedb.org/snp/chr"
@@ -341,13 +342,10 @@ public class HtmlOutput {
 								write("<td class = \"" + red + "\">" + s + "</td>", 5);
 							}
 							else{
-								write("<td class = \"" + vert + "\">" + s + "</td>", 5);
+								write("<td class = \"" + green + "\">" + s + "</td>", 5);
 							}
 							}
-							
-//							else {
-//								write("<td>" + s + "</td>", 5);
-//							}
+
 							break;
 						case 17:
 							// SIFT prediction skipped
@@ -364,7 +362,7 @@ public class HtmlOutput {
 								write("<td class = \"" + red + "\">" + s + "</td>", 5);
 							}
 							else {
-								write("<td class = \"vert\">" + s + "</td>", 5);
+								write("<td class = \"green\">" + s + "</td>", 5);
 							}
 							
 							
@@ -383,7 +381,7 @@ public class HtmlOutput {
 								write("<td class = \"" + red + "\">" + s + "</td>", 5);
 							}
 							else {
-								write("<td class = \"" + vert + "\">" + s + "</td>", 5);
+								write("<td class = \"" + green + "\">" + s + "</td>", 5);
 							}
 						}
 							
@@ -397,7 +395,7 @@ public class HtmlOutput {
 								}
 							else{
 							if (Float.valueOf(s) < 15){
-								write("<td class = \"" + vert + "\">" + s + "</td>", 5);
+								write("<td class = \"" + green + "\">" + s + "</td>", 5);
 							}
 							else {
 								write("<td class = \"" + red + "\">" + s + "</td>", 5);

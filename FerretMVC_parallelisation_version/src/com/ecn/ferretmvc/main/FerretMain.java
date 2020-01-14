@@ -1,9 +1,13 @@
 package com.ecn.ferretmvc.main;
 
+import java.sql.Connection;
+
 import com.ecn.ferretmvc.controller.*;
+import com.ecn.ferretmvc.model.DBconnection;
 import com.ecn.ferretmvc.model.DownloadTheDataModel;
 import com.ecn.ferretmvc.model.MenuBarModel;
 import com.ecn.ferretmvc.view.GUI;
+
 import javax.swing.JFrame;
 
 /*
@@ -19,7 +23,8 @@ public class FerretMain {
 
     public static void main(String[] args) {
         GUI ferretGUI = new GUI();
-        
+       
+   
         DownloadTheDataModel dtdModel = new DownloadTheDataModel();
         MenuBarModel mbModel = new MenuBarModel();
         
@@ -28,6 +33,8 @@ public class FerretMain {
         MenuBarController MBC = new MenuBarController(ferretGUI, mbModel);
         MainPanelController MFC = new MainPanelController(ferretGUI);
         DownloadTheDataController DTDC = new DownloadTheDataController(ferretGUI, dtdModel);
+        DBconnection.Connection();
         ferretGUI.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		
     }
 }

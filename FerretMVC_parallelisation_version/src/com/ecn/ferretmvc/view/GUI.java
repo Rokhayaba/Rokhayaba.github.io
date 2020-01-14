@@ -41,7 +41,7 @@ public class GUI extends JFrame {
     ImageIcon questionMark = new ImageIcon(questionMarkURL);
 
     // Races Selection Declarations	
-    JLabel fileLocation = new JLabel("File location: None Selected");
+    JLabel fileLocation = new JLabel("File Name: None Selected");
     String[] asnCode = {"EAS", "CDX", "CHB", "CHS", "JPT", "KHV", "CHD"};
     String[] eurCode = {"EUR", "CEU", "GBR", "FIN", "IBS", "TSI"};
     String[] afrCode = {"AFR", "ACB", "ASW", "ESN", "GWD", "LWK", "MSL", "YRI"};

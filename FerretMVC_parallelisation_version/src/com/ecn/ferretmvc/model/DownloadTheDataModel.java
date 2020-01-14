@@ -35,15 +35,9 @@ import java.util.concurrent.ExecutionException;
 import javax.swing.JOptionPane;
 import javax.swing.SwingWorker;
 
-/**
- *
- * @author Eric
- */
 public class DownloadTheDataModel extends Observable {
 
 	/**
-	 *
-	 * @author Rokhaya
 	 * the method locus_extr
 	 * the method gene_extr
 	 * the method hla_extraction handles the writing of hla files
@@ -52,11 +46,8 @@ public class DownloadTheDataModel extends Observable {
 	 * @return none : void method
 	 */
 	
-
-	
 	public void hla_extraction(GUI gui, String Genename, int position, PrintWriter infowriter,PrintWriter mapwriter,PrintWriter pedwriter){
 		//Retrieving inputted populations (in an arraylist "populations") using the gui object
-		System.out.print("\t" + Genename + "\t" + position + "\t");
         ArrayList<CharSequence> populations = new ArrayList<>();
         for (int i = 0; i < gui.getAfrsub().length; i++) {
             if (gui.getAfrsub()[i].isSelected()) {
@@ -88,16 +79,12 @@ public class DownloadTheDataModel extends Observable {
             populations.add("ALL");
         }
  
-        // Retrieving  the inputted file path and Gene Name/id
-		//String location = gui.getFileNameAndPath(); 
 		
 		/* Initializing Objects used for file writing : 
 		 * Position and Genename depend on the hla gene inputted.
 		 * The Genename need to be changed because the string "-" is not accepted by SQL as table name and "_" is not accepted by ferret.
 		 * The chromosome concerned is the chr 6 for all HLA genes
 		 * The Genedistance equals zero */
-		//int position = 0;
-		//String Genename = null;
 		int chromosome = 6;
 		int Genedistance = 0;
 		
@@ -106,42 +93,13 @@ public class DownloadTheDataModel extends Observable {
 		ArrayList<CharSequence> subgroup = new ArrayList<>();
 		
 		try {
-	    	
-	    	// Connecting into the Database
-	      Class.forName("org.postgresql.Driver");
-	      String url = "jdbc:postgresql://localhost:5432/Ferret_data";
-	     //String url = "jdbc:postgresql://postgresql-ferret.alwaysdata.net:5432/ferret_hladata";
-	      String user = "postgres";
 
-	      String passwd = "Ferret.1";
-	      
-	      
-	      //Connection between the program and the Database
-	      Connection conn = DriverManager.getConnection(url, user, passwd);
 	      
 	      /* Initializing objects : Resultset and ResultMetaData which retrieve data from the database and allows us to manipulated them
 	       * This Resultset retrieve specifically data when ALL populations is selected.
 	       * Its used to create info/map/ped files when ALL is selected and info/map files in other cases */
-	      ResultSet result = conn.createStatement().executeQuery("SELECT * FROM "+Genename+"");
+	      ResultSet result = DBconnection.conn.createStatement().executeQuery("SELECT * FROM "+Genename+"");
 		      ResultSetMetaData resultMeta = result.getMetaData();
-		      /* Initializing output files and writers for each files
-		      PrintStream info = new PrintStream(new FileOutputStream(location + "_hla.info"));
-		    	PrintStream map = new PrintStream(new FileOutputStream(location + "_hla.map"));
-		    	PrintStream ped = new PrintStream(new FileOutputStream(location + "_hla.ped"));
-		    	//PrintStream frq = new PrintStream(new FileOutputStream(location + "AlleleFreq.frq"));
-		    	//PrintStream vcf = new PrintStream(new FileOutputStream(location + ".vcf"));
-		    	
-		      File infofile = new File(location + "_hla.info");
-		      File mapfile = new File(location + "_hla.map");
-		      File pedfile =new File(location + "_hla.ped");
-	      PrintWriter infowriter = new PrintWriter(new BufferedWriter(new FileWriter(infofile)));
-      	PrintWriter mapwriter = new PrintWriter(new BufferedWriter(new FileWriter(mapfile)));
-      	PrintWriter pedwriter = new PrintWriter(new BufferedWriter(new FileWriter(pedfile)));
-      	System.out.print("\n la taille de info =  " + infofile.length());
-      	//PrintWriter frqwriter = new PrintWriter(new BufferedWriter(new FileWriter(location + "AlleleFreq.frq", true)));
-      	//PrintWriter vcfwriter = new PrintWriter(new BufferedWriter(new FileWriter(location + ".vcf", true))); */
-
-      	
       	/* Different treatments are required depending on what is contained in populations : 
       	 * If ALL is selected , output files are directly created from the ResultSet. The sql request is simple and doesnt require a where statement 
       	 * If specific groups or/and sbgroups of populations are selected , we need to separate them in two different lists in order to make
@@ -186,11 +144,6 @@ public class DownloadTheDataModel extends Observable {
       			}
       	}
       			
-      	
-      	System.out.print("les groupes" + group);
-			System.out.print("les sous groupes" + subgroup);
-			
-			
 			
 			/* This condition permits to create plink files when the selected populations contains groups and sbgroups */
 			if(group.isEmpty()== false && subgroup.isEmpty() == false) {
@@ -204,14 +157,13 @@ public class DownloadTheDataModel extends Observable {
 				
 			for(int g = 0; g < group.size(); g++) {
 				System.out.print("group \t" + group.get(g));
-				ResultSet resultgroup = conn.createStatement().executeQuery("SELECT * FROM "+Genename+",sbgroup WHERE \"group\" = '"+group.get(g)+"' AND "+Genename+".id = sbgroup.id");
+				ResultSet resultgroup = DBconnection.conn.createStatement().executeQuery("SELECT * FROM "+Genename+",sbgroup WHERE \"group\" = '"+group.get(g)+"' AND "+Genename+".id = sbgroup.id");
     		    ResultSetMetaData resultgroupMeta = resultgroup.getMetaData();
     		   
     		    while(resultgroup.next())
   					
 	        	{ 
     		    	pedwriter.print(resultgroup.getString("id") + "\t");
-    		    	/* i+5 <= resultMeta.getColumnCount() remove the unwanted column*/
 	        		for(int i = 1; i+5 <= resultgroupMeta.getColumnCount(); i ++){
 	        			
 	        			pedwriter.print(resultgroup.getObject(i).toString() + "\t");
@@ -224,9 +176,8 @@ public class DownloadTheDataModel extends Observable {
   					
 				
 				for(int sg = 0; sg < subgroup.size(); sg++) {
-						System.out.print("\n sbgroup \t" + subgroup.get(sg) + "\t");
 						
-						ResultSet resultsubgroup = conn.createStatement().executeQuery("SELECT * FROM "+Genename+",sbgroup  WHERE \"sbgroup\" = '"+subgroup.get(sg)+"' AND "+Genename+".id = sbgroup.id");
+						ResultSet resultsubgroup = DBconnection.conn.createStatement().executeQuery("SELECT * FROM "+Genename+",sbgroup  WHERE \"sbgroup\" = '"+subgroup.get(sg)+"' AND "+Genename+".id = sbgroup.id");
 		      		      ResultSetMetaData resultMeta1 = resultsubgroup.getMetaData();
 		      		      
 		      				while(resultsubgroup.next())
@@ -260,7 +211,7 @@ public class DownloadTheDataModel extends Observable {
 						for(int g = 0; g < group.size(); g++) {
 							System.out.print("group \t" + group.get(g));
 						
-						ResultSet result2 = conn.createStatement().executeQuery("SELECT * FROM "+Genename+",sbgroup  WHERE \"group\" = '"+group.get(g)+"' AND "+Genename+".id = sbgroup.id");
+						ResultSet result2 = DBconnection.conn.createStatement().executeQuery("SELECT * FROM "+Genename+",sbgroup  WHERE \"group\" = '"+group.get(g)+"' AND "+Genename+".id = sbgroup.id");
 		      		      ResultSetMetaData resultMeta2 = result2.getMetaData();
 
 		      				while(result2.next()) 
@@ -289,7 +240,7 @@ public class DownloadTheDataModel extends Observable {
       		          	}
 						for(int sg = 0; sg < subgroup.size(); sg++) {
 							
-						ResultSet result3 = conn.createStatement().executeQuery("SELECT * FROM "+Genename+",sbgroup  WHERE \"sbgroup\" = '"+subgroup.get(sg)+"' AND "+Genename+".id = sbgroup.id");
+						ResultSet result3 = DBconnection.conn.createStatement().executeQuery("SELECT * FROM "+Genename+",sbgroup  WHERE \"sbgroup\" = '"+subgroup.get(sg)+"' AND "+Genename+".id = sbgroup.id");
 		      		      ResultSetMetaData resultMeta3 = result3.getMetaData();
 		      		      
 		      		    
@@ -307,32 +258,6 @@ public class DownloadTheDataModel extends Observable {
 		      				result3.close();
 					}
 					}
-
-					/* Files are deleted if the user doesnt put any gene or populations
-					 * 
-					if(geneString == null || populations.isEmpty() == true)
-					{
-						System.out.print("je suis dans le dernier if");
-						infofile.delete();
-						mapfile.delete();
-						pedfile.delete();
-						//new File(location + ".frq").delete();
-						//new File(location + ".vcf").delete();
-					}*/
-					/*File infofile = new File(gui.getFileNameAndPath() + "_hla.info");
-				File mapfile = new File(gui.getFileNameAndPath() + "_hla.map");
-					File pedfile = new File(gui.getFileNameAndPath() + "_hla.ped");
-					if(Genename.equals("") || populations.isEmpty() == true)
-					{
-				
-					infofile.delete();
-					mapfile.delete();
-					pedfile.delete();
-					}*/
-       
-	    	 //frqwriter.close();
-	    	 //vcfwriter.close();
-    	 
       		
 
 	    } catch (Exception e) {
@@ -343,7 +268,6 @@ public class DownloadTheDataModel extends Observable {
 	   
 	}
 	public void hla_request(GUI gui){
-		System.out.print("\tMais ou est donc or ni car?");
 	/* Variables for gene treatment*/
 		ArrayList<CharSequence> populations = new ArrayList<>();	
 	String geneString = gui.getGeneNameField().getText();
@@ -354,19 +278,16 @@ public class DownloadTheDataModel extends Observable {
 	String chrSelected = (String) gui.getChrList().getSelectedItem();
     String startPosition = gui.getStartPosTextField().getText();
     String endPosition = gui.getEndPosTextField().getText();
-    System.out.print("\tchr" + chrSelected + "\tstart" + startPosition + "\tend" + endPosition);
     int start = 0;
     int end = 0;
     int chr = 0;
     if (!chrSelected.equals("") && !startPosition.equals("") && !endPosition.equals(""))
     {
-    	System.out.print("je verifie que start end et chr existent");
     start = Integer.parseInt(startPosition);
      end = Integer.parseInt(endPosition);
     chr = Integer.parseInt(chrSelected);
     }
-    System.out.print("\tchr" + chr + "\tstart" + start + "\tend" + end);
-    
+   
     int PosA =  29910247;
     int PosB = 31324989;
     int PosC = 31239913;
@@ -410,15 +331,10 @@ public class DownloadTheDataModel extends Observable {
   	   case "3119":
   		   position = 32634466;
   		   Genename = "hla_dqb1";
-  		   System.out.print("\tj'ai vu la condition dqb1");
   	     break;
 
   	   default:
-  		   System.out.print("\tje rentre dans le contructeur gene");
-  	     System.out.println("\tNot an HLA gene");
   	     Genename = null;
-  	     
-
   	 }
     // Locus
     if(chr == 6 && start <=  PosA && end >= PosA) {
@@ -441,15 +357,9 @@ public class DownloadTheDataModel extends Observable {
     }
     
     if(chr == 6 && start <=  PosDQ && end >= PosDQ) {
-    	 System.out.print("\tje rentre dans le if dqb1");
 
     	genelist.add("hla_dqb1");
     	positionlist.add(PosDQ);
-    	System.out.print("\t" + genelist + "\t" + positionlist + "\t");
-    }
-    else
-    {
-    	System.out.print("\tNone of HLA gene are concerned");
     }
     
    
@@ -457,14 +367,11 @@ public class DownloadTheDataModel extends Observable {
  // Initializing output files and writers for each files
 	 if (genelist.isEmpty() == false && positionlist.isEmpty() == false || geneString != null)
 	    {
-		 System.out.print("\t verife qu'on est dans un locus ou un gene");
     try {
     	
 		PrintStream info = new PrintStream(new FileOutputStream(location + "_hla.info"));
   	PrintStream map = new PrintStream(new FileOutputStream(location + "_hla.map"));
   	PrintStream ped = new PrintStream(new FileOutputStream(location + "_hla.ped"));
-  	//PrintStream frq = new PrintStream(new FileOutputStream(location + "AlleleFreq.frq"));
-  	//PrintStream vcf = new PrintStream(new FileOutputStream(location + ".vcf"));
   	
     File infofile = new File(location + "_hla.info");
     File mapfile = new File(location + "_hla.map");
@@ -475,7 +382,6 @@ PrintWriter pedwriter = new PrintWriter(new BufferedWriter(new FileWriter(pedfil
 if (genelist.isEmpty() == false && positionlist.isEmpty() == false) {    	    
 for(int i = 0; i < genelist.size(); i++)
 {
-	System.out.print("\tje suis dans le if locus");
 	System.out.print("\t" + genelist.get(i) + "\t" + positionlist.get(i) + "\t");
 hla_extraction(gui,genelist.get(i),positionlist.get(i),infowriter,mapwriter,pedwriter);
 }
@@ -485,7 +391,6 @@ pedwriter.close();
 }
 if(Genename != null)
 {
-	System.out.print("\tje suis dans le if geneString");
 	System.out.print("\t" + Genename + "\t" + position);
 	hla_extraction(gui,Genename,position,infowriter,mapwriter,pedwriter);
 	 infowriter.close ();
@@ -981,8 +886,6 @@ pedfile.delete();
                     }
 //LOCUS
                     FerretData currFerretWorker = new FerretData(queries, populations, gui.getFileNameAndPath(), getESP, gui.getProgressText(), webAddress, gui.getMafThreshold()[0], gui.getMafThresholdMax()[0], gui.getEspMAFBoolean()[0], output, outputannot,htmlOutput, downloadHaplo);
-                    //currFerretWorker.setHaplo(boolHaplo);
-
                     currFerretWorker.addPropertyChangeListener((PropertyChangeEvent evt) -> {
                         switch (evt.getPropertyName()) {
                             case "progress":
@@ -1134,7 +1037,6 @@ pedfile.delete();
                 // Gene starts after this line ------------------------------------------------------------------
                 boolean getESP = gui.getGeneESPCheckBox().isSelected();
                 String geneString = gui.getGeneNameField().getText();
-                System.out.println("geneString ?" + geneString);
                 String[] geneListArray = null;
                 boolean geneListInputted = geneString.length() > 0;
                 boolean geneFileImported = gui.getGeneFileNameAndPath() != null;
@@ -1325,8 +1227,6 @@ pedfile.delete();
                     }
 //GENE
                     FerretData currFerretWorker = new FerretData(geneQueryType, geneListArray, populations, gui.getFileNameAndPath(), getESP, gui.getProgressText(), webAddress, gui.getMafThreshold()[0], gui.getMafThresholdMax()[0], gui.getEspMAFBoolean()[0], output, gui.getDefaultHG()[0], geneWindowSelected, Integer.parseInt(geneWindowSize), 0, outputannot, htmlOutput, downloadHaplo);
-                    //currFerretWorker.setHaplo(boolHaplo);
-
                     currFerretWorker.addPropertyChangeListener((PropertyChangeEvent evt) -> {
                         switch (evt.getPropertyName()) {
                             case "progress":
@@ -1349,7 +1249,6 @@ pedfile.delete();
                                                 variants[0] = -1;
                                                 Thread.currentThread().interrupt();
                                             }
-                                            // Appel focntion merge
                                             merge(gui);
                                            
                                             new File("evsClient0_15.jar").delete();
@@ -1665,7 +1564,6 @@ pedfile.delete();
 //VARIANT
                     FerretData currFerretWorker = new FerretData("SNP", snpListArray, populations, gui.getFileNameAndPath(), getESP, gui.getProgressText(), webAddress, gui.getMafThreshold()[0], gui.getMafThresholdMax()[0],
                             gui.getEspMAFBoolean()[0], output, gui.getDefaultHG()[0], snpWindowSelected, Integer.parseInt(snpWindowSize), outputannot, htmlOutput, downloadHaplo);
-                    //currFerretWorker.setHaplo(boolHaplo);
                     currFerretWorker.addPropertyChangeListener((PropertyChangeEvent evt) -> {
                         switch (evt.getPropertyName()) {
                             case "progress":
@@ -1947,9 +1845,7 @@ pedfile.delete();
         	 str1 = line1.split("\t");
              line1 = br1.readLine();
              id_snp.add(str1[1]);
-        
-            //System.out.print("tour1 \n");
-            //System.out.print(str1[1] + "\n");
+
         }
         
         while (line2 != null)
@@ -1957,24 +1853,17 @@ pedfile.delete();
              str2 = line2.split("\t");
              line2 = br2.readLine();
              id_hla.add(str2[0]);
-         
-            //System.out.print(str2[0] + "\n");
-            //System.out.print("tour2 \n");
-            
         }
-        //System.out.print(str2.length + "\n");
-        //System.out.print(id_snp + "id snp \n");
-        //System.out.print(id_hla + "id hla \n");
+
         for(int i=1; i<str2.length;i++)
         {
         	nb_zero.add(0);
         }
-        //System.out.print("\n nb_zero"+nb_zero);
+
         while (line3 != null)
         {
         	
         	for (int i = 0; i < id_snp.size(); i++) {
-        			//System.out.print("\n i \t" +id_snp.get(i) + "\t");
         			
         			 if (id_hla.contains(id_snp.get(i))) 
         		         {

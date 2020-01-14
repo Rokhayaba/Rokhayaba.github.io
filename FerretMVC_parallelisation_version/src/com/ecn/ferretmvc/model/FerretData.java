@@ -60,12 +60,10 @@ public class FerretData extends SwingWorker<Integer, String> {
 
     private Map<Integer, String> StockLineFreq;
 
-
-	private Runnable worker;
-
         ThreadPoolExecutor  executor= new ThreadPoolExecutor(300,300,500, TimeUnit.MILLISECONDS,
    		 new LinkedBlockingQueue<Runnable>(), new ThreadPoolExecutor.CallerRunsPolicy());
 
+        private Runnable worker;
 
     InputRegion[] queries;
     ArrayList<CharSequence> populations;
@@ -78,7 +76,6 @@ public class FerretData extends SwingWorker<Integer, String> {
     String outputFiles;
     String annotFiles;
     double espMAF;
-    //private boolean usehaplo;
     boolean htmlOutputFile;
     boolean downloadHaplo;
 
@@ -110,7 +107,6 @@ public class FerretData extends SwingWorker<Integer, String> {
         this.annotFiles = annotFiles;
         this.htmlOutputFile = htmlOutputFile;
         this.downloadHaplo = downloadHaplo;
-       // this.usehaplo = false;
     }
 
     //Constructor for the SNP (variants) research
@@ -139,7 +135,6 @@ public class FerretData extends SwingWorker<Integer, String> {
         this.defaultHG = defaultHG;
         this.snpWindowSelected = snpWindowSelected;
         this.windowSize = windowSize;
-        //this.usehaplo = false;
         this.downloadHaplo = downloadHaplo;
     }
 
@@ -168,16 +163,8 @@ public class FerretData extends SwingWorker<Integer, String> {
         this.defaultHG = defaultHG;
         this.geneWindowSelected = geneWindowSelected;
         this.windowSize = windowSize;
-        //this.usehaplo = false;
         this.downloadHaplo =  downloadHaplo;
     }
-
-
-
-	//setter that put the boolean usehaplo as true, use in doInBackGround to open or not Haploview at the end
-//    public void setHaplo(boolean b) {
-//        this.usehaplo = b;
-//    }
 
     @Override
     public Integer doInBackground() throws Exception {
@@ -191,14 +178,11 @@ public class FerretData extends SwingWorker<Integer, String> {
             InputRegion[] queries = null;
             ArrayList<String> SNPsFound = new ArrayList<>();
             boolean allSNPsFound = true;
-            //allSNPsFound = true;
-            //BufferedReader br = null;
-            //br = null;
             try {
             	
             	
                 for (int i = 0; i < snpQueries.size(); i++) {
-                	System.out.println("snp queries" + snpQueries);
+                	System.out.println("\tsnp queries" + snpQueries);
                     URL urlLocation;
 					
 						urlLocation = new URL("https://www.ncbi.nlm.nih.gov/projects/SNP/snp_gene.cgi?connect=&rs=" + snpQueries.get(i));
@@ -211,7 +195,7 @@ public class FerretData extends SwingWorker<Integer, String> {
               	while (!executor.isTerminated()) {
 
               	}
-              	executor = new ThreadPoolExecutor(100,100,500, TimeUnit.MILLISECONDS,
+              	executor = new ThreadPoolExecutor(300,300,500, TimeUnit.MILLISECONDS,
               	   		 new LinkedBlockingQueue<Runnable>(), new ThreadPoolExecutor.CallerRunsPolicy());
 
             
@@ -491,35 +475,25 @@ public class FerretData extends SwingWorker<Integer, String> {
 
             // VCF writing code is right here for compatibility with swingWorker
             try {
-//            	File vcfFile = new File(fileName + "_genotypes.vcf");
-//                vcfFile.createNewFile();
-               
-                //vcfFile.createNewFile();
+
             	BufferedWriter vcfBuffWrite = null;
                 int compt = 0;
                     for (int j = 0; j < queryNumber; j++) {
                     	Runnable worker2 = new Threading1(j,startTime,sortedQueries,webAddress,ftpAddress,queryNumber,variantCounter,tempInt,querySize,fileName);
                     executor.execute(worker2);
-//                  if (tempInt > 0) {
-//                  setProgress((int) ((tempInt + querySize[j]) / (double) querySize[queryNumber] * 99));
-//              }
+
                     compt++;
-                    System.out.println("variantCounterfor--->" + variantCounter);
+            
                     }
-                
-                
-                    
-                    System.out.println("compt" + compt);
+                    System.out.println("\tcompt=" + compt);
                     executor.shutdown();
                   	// Wait until all threads are finish
                   	while (!executor.isTerminated()) {
 
                   	}
-                  	System.out.println("variantCounteroutfor--->" + variantCounter);
                   	File vcfFile = new File(fileName + "_genotypes.vcf");
                   	vcfFile.createNewFile();
                   	vcfBuffWrite = new BufferedWriter(new FileWriter(vcfFile));
-                  	//System.out.println("buffWrite" + vcfBuffWrite);
                   	//HERE
                   	
                   	for (int i = 0; i < compt; i++) {
@@ -529,7 +503,6 @@ public class FerretData extends SwingWorker<Integer, String> {
                    	else{
                    		int localSize = Threading1.StockLineVcfall.get(i).size();
                    		for (int t = 0; t < localSize; t++){
-                   			//System.out.println("\tStockLineVcfall ----->" + Threading1.StockLineVcfall.get(i).get(t));
                    			vcfBuffWrite.write(Threading1.StockLineVcfall.get(i).get(t) +"\n");
                    		}
                     }
@@ -540,11 +513,6 @@ public class FerretData extends SwingWorker<Integer, String> {
                   	executor = new ThreadPoolExecutor(300,300,500, TimeUnit.MILLISECONDS,
                   	   		 new LinkedBlockingQueue<Runnable>(), new ThreadPoolExecutor.CallerRunsPolicy());
                 
-           
-        
-//        } catch (IOException e) {
-//                System.out.println("IOException " + tempInt);
-//                return -1;
             } catch (NullPointerException e) {
                 System.out.println("Null Pointer Exception " + tempInt);
                 return -1;
@@ -555,11 +523,8 @@ public class FerretData extends SwingWorker<Integer, String> {
                 return -1;
             }
             variantCounter = Threading1.variantCounter;
-            //System.out.println("variantCounterouttry--->" + variantCounter);
             
             // end VCF writing
-
-            //LinkedList<EspInfoObj> espData = null;
             LinkedList<EspInfoObj> espData = null;
             if (retrieveESP) {
                 publish("Downloading Data from Exome Sequencing Project...");
@@ -567,14 +532,12 @@ public class FerretData extends SwingWorker<Integer, String> {
             }
             if (variantCounter == 0 && (espData == null || espData.size() == 0)) {
                 File vcfFile = new File(fileName + "_genotypes.vcf");
-                System.out.println("test" + variantCounter +"\t"+ espData);
                 vcfFile.delete();
                 return 0;
             }
 
             publish("Outputting files...");
             try {
-            	//Runnable worker = new CallerRunsPolicyDemo ().new  MyRunnable(urlLocation,urlvep) { @Override public void run() {
                 // Creating lookup HashMap for family info, etc.
                 HashMap<String, String[]> familyInfo = new HashMap<>(5000);
                 BufferedReader familyInfoRead = new BufferedReader(new InputStreamReader(FerretData.class.getClassLoader().getResourceAsStream("family_info.txt")));
@@ -588,10 +551,6 @@ public class FerretData extends SwingWorker<Integer, String> {
 
                 BufferedWriter mapWrite = null, infoWrite = null, pedWrite = null, frqWrite = null;
                 boolean fileEmpty = true, frqFileEmpty = true;
-                
-//                mapWrite = null; infoWrite = null; pedWrite = null; frqlpoiWrite = null;
-//                fileEmpty = true; frqFileEmpty = true;
-
 
                 if (outputFiles == "all") {
                     genotypes = new String[peopleCounter + 1][2 * variantCounter + 6];
@@ -626,14 +585,14 @@ public class FerretData extends SwingWorker<Integer, String> {
                     }
                 }
 
-                int index = 0;
-               // index = 0;
-               
+                int index = 0;  
                int espErrorCount = 0;
 
 				// Connecting to the local database containing RegulomeDB scores
+				//String url = "jdbc:postgresql://ser-info-03.ec-nantes.fr:5432/Ferret_data";
 				String url = "jdbc:postgresql://localhost:5432/regulome_score";
 				String user = "postgres";
+				//String user = "ferret";
 				String passwd = "Ferret.1";
 				Connection conn = null;
 				try {
@@ -651,7 +610,6 @@ public class FerretData extends SwingWorker<Integer, String> {
 				}
                 String Varid = null;
               int count = 0;
-              int countfake = 0;
               StockLineFreq = new HashMap<>();
               
 				//String [] test = {"rs201864858", "rs201864858", "rs372723457", "rs372723457", "rs11553019", "rs11553019", "rs139017158", "rs139017158", "rs149964072", "rs149964072", "rs11553018", "rs11553018", "rs141052988", "rs141052988", "rs145664491", "rs145664491", "rs148306581", "rs148306581", "rs74558623", "rs74558623", "rs79377094", "rs79377094", "rs201610844", "rs201610844", "rs375850117", "rs375850117", "rs201342263", "rs201342263", "rs201892015", "rs201892015", "rs115595484", "rs115595484", "rs367663038", "rs367663038", "rs199853927", "rs199853927", "rs200757617", "rs200757617", "rs138567361", "rs138567361", "rs369805092", "rs369805092", "rs200178716", "rs200178716", "rs150755193", "rs150755193", "rs111662059", "rs111662059", "rs376725006", "rs376725006", "rs375747724", "rs375747724", "rs200476766", "rs200476766", "rs375678465", "rs375678465", "rs370150531", "rs370150531", "rs75915990", "rs75915990", "rs141372323", "rs141372323", "rs121909386", "rs121909386", "rs371779195", "rs371779195", "rs190323395", "rs190323395", "rs375833021", "rs375833021", "rs149516753", "rs149516753", "rs140753322", "rs140753322", "rs183437359", "rs183437359", "rs367727112", "rs367727112", "rs370770872", "rs370770872", "rs200241388", "rs200241388", "rs143432523", "rs143432523", "rs370731821", "rs370731821", "rs201280490", "rs201280490", "rs372770283", "rs372770283", "rs199753491", "rs199753491", "rs182944047", "rs182944047", "rs200892725", "rs200892725", "rs372546647", "rs372546647", "rs112200975", "rs112200975", "rs367763475", "rs367763475", "rs150890799", "rs150890799", "rs140162687", "rs140162687", "rs374218650", "rs374218650", "rs149456198", "rs149456198", "rs141485845", "rs141485845", "rs371085455", "rs371085455", "rs368955427", "rs368955427", "rs376644821", "rs376644821", "rs368720992", "rs368720992", "rs191962962"};
@@ -660,24 +618,10 @@ public class FerretData extends SwingWorker<Integer, String> {
                 while ((s = vcfRead.readLine()) != null) {
                 	
                    String [] text = s.split("\t");
-                    //System.out.print("\t text" + text[2]);
                     Varid = text[2].substring(2);
-                    //System.out.print("test" + test[count]);
-                	//System.out.println("Varid : " + Varid);
-                   
-/* text[2] contains all the rsid for a gene, a locus or variants inputted by the user*/
 
-                    
-                    
-                   
-                 worker = new AnnotThreading(count,Varid,conn);
-                    //worker = new AnnotThreading(count,Varid,conn);
+                 worker = new AnnotThreading(count,Varid);
                  executor.execute(worker);
-                 setProgress(Threading1.progress);
-                 
-
-                    
-
 
                     String[] variantPossibilities;
                     String[] multAllele = text[4].split(",");
@@ -740,7 +684,6 @@ public class FerretData extends SwingWorker<Integer, String> {
                                 genotypes[0][2 * index + 7] = Double.toString(freqZero);
                                 index++;
                             }
-                            //if (!text[4].contains("CN") && (freqZero >= MAF && freqOne >= MAF && freqOne <= MAFMax)) {
                             if (!text[4].contains("CN") && (freqZero >= MAF && freqOne >= MAF && ((freqOne <= MAFMax) || (freqZero <= MAFMax)))) {
                                 fileEmpty = false;
                                 mapWrite.write(text[0] + "\t" + text[2] + "\t0\t" + text[1]);
@@ -814,30 +757,23 @@ public class FerretData extends SwingWorker<Integer, String> {
                     } else {
                         if (variantPossibilities.length == 2 && freqOne >= MAF && freqZero >= MAF && ((freqOne <= MAFMax) || (freqZero <= MAFMax))) {
                         	frqFileEmpty = false;
-                            //System.out.print("BECAUSE1 : " + count + "\t" +Varid);
                             if(annotFiles.equals("no"))
                             {
-                            	//System.out.print("BECAUSE2 : " + count + "\t" +Varid);
                             	StockLineFreq.put(count,(text[0] + "\t" + text[2] + "\t" + text[1] + "\t" + variantPossibilities[0] + "\t"
                                     + variantPossibilities[1] + "\t" + numChr + "\t" + df.format(freqZero) + "\t" + df.format(freqOne)+"\t"));
                             }
                             if(annotFiles.equals("def"))
                             {
-                            	//System.out.print("BECAUSE3 : " + count + "\t" +Varid);
                             	StockLineFreq.put(count,(text[0] + "\t" + text[2] + "\t" + text[1] + "\t" + variantPossibilities[0] + "\t"
                                     + variantPossibilities[1] + "\t" + numChr + "\t" + df.format(freqZero) + "\t" + df.format(freqOne)+"\t")); // + "\t" + geneSymbol+ "\t" + geneId+ "\t" + fxnName + "\t" + proteinPos + "\t" + aa2 + aa1  + "\t" + proteinAcc);
                             }
                             if(annotFiles.equals("adv"))
                             {
-                            	//System.out.print("BECAUSE4 : " + count + "\t" + Varid);
                             	StockLineFreq.put(count,(text[0] + "\t" + text[2] + "\t" + text[1] + "\t" + variantPossibilities[0] + "\t"
                                     + variantPossibilities[1] + "\t" + numChr + "\t" + df.format(freqZero) + "\t" + df.format(freqOne)+"\t"));
-                            	//System.out.print("BECAUSEOFYOU-----> : " + StockLineFreq + "\t" + Varid + "\t" + count);
                             }
                         }
                     }
-                    //System.out.println("StockLineFreq[count] : " + StockLineFreq[count]);
-
                     count++;
                    
                 }
@@ -858,23 +794,19 @@ public class FerretData extends SwingWorker<Integer, String> {
                  freqFile.createNewFile();
                  frqWrite = new BufferedWriter(new FileWriter(freqFile));
                  if (retrieveESP) {
-                	// System.out.print("BECAUSE5 : " + count + "\t" +Varid);
                      frqWrite.write("CHROM\tVARIANT\tPOS\tALLELE1\tALLELE2\tNB_1KG_CHR\t1KG_A1_FREQ\tESP6500_EA_A1_FREQ\tESP6500_AA_A1_FREQ\tGENENAME\tGENEID\tFUNCTION\tPROTEINPOS\tAACHANGE\tPROTEINACC");
                   
                      frqWrite.newLine();
                  } else {
                  	if(annotFiles.equals("no")){
-                 		//System.out.print("BECAUSE6 : " + count + "\t" +Varid);
                      frqWrite.write("CHROM\tVARIANT\tPOS\tALLELE1\tALLELE2\tNB_CHR\t1KG_A1_FREQ\t1KG_A2_FREQ");
                      frqWrite.newLine();
                  	}
                  	if(annotFiles.equals("def")){
-                 		//System.out.print("BECAUSE7 : " + count + "\t" +Varid);
                          frqWrite.write("CHROM\tVARIANT\tPOS\tALLELE1\tALLELE2\tNB_CHR\t1KG_A1_FREQ\t1KG_A2_FREQ\tGENENAME\tGENEID\tFUNCTION\tPROTEINPOS\tAACHANGE\tPROTEINACC");
                          frqWrite.newLine();
                      	}
                  	if(annotFiles.equals("adv")){
-                 		//System.out.print("BECAUSE8 : " + count + "\t" +Varid);
                  		frqWrite.write("CHROM\tVARIANT\tPOS\tALLELE1\tALLELE2\tNB_CHR\t1KG_A1_FREQ\t1KG_A2_FREQ\tGENENAME\tGENEID\tFUNCTION\tPROTEINPOS\tAACHANGE\tPROTEINACC\tRBDB_SCORE\tRBDB_PREDICTION\tSIFT_SCORE\tSIFT_PREDICTION\tPOLYPHEN_SCORE\tPOLYPHEN_PREDICTION\tPROVEAN_SCORE\tPROVEAN_PREDICTION\tCADD_SCORE");
                  		frqWrite.newLine();
                      	}
@@ -890,7 +822,6 @@ public class FerretData extends SwingWorker<Integer, String> {
                 		 //System.out.println("StockLineAnnot: idx ("+ i +") not exist");
                 	 }
                 	 else{
-                		//System.out.println("StockLineFreq ----->" + StockLineFreq.get(i)+ "\tStockLineAnnot ----->" + AnnotThreading.StockLineAnnot.get(i));
                 		 if(annotFiles.equals("no")){
                 			 frqWrite.write(StockLineFreq.get(i) +"\n");
                 		 }
@@ -937,7 +868,6 @@ public class FerretData extends SwingWorker<Integer, String> {
                 File vcfFile = new File(fileName + "_genotypes.vcf");
                 vcfFile.delete();
                 if (frqFileEmpty) {
-                	System.out.print("OUI");
                     freqFile.delete();
                     return -3;
                 }
@@ -958,14 +888,6 @@ public class FerretData extends SwingWorker<Integer, String> {
             System.out.println("Finished");
 
         }
-//        if (usehaplo) {
-//        	Process proc;
-//            try {
-//            	//Process  proc = Runtime.getRuntime().exec("java -jar \"/FerretMVC/Haploview.jar\"");
-//            	proc = Runtime.getRuntime().exec("java -jar \"Haploview.jar\" -pedfile \"" + fileName + ".ped\" -info \"" + fileName + ".info\"");
-//            } catch (IOException e) {
-//            }
-//        }
         if (downloadHaplo) {
         	Process proc;
             try {
@@ -1587,16 +1509,5 @@ public class FerretData extends SwingWorker<Integer, String> {
         foundGenes.deleteCharAt(foundGenes.length() - 1);
         return new FoundGeneAndRegion(foundGenes.toString(), queriesFound, queryArrayList.size() == geneListArray.length);
     }
-
-
-//   public void regex(String varid) {
-//	   Pattern p = Pattern.compile("[0-9]+");
-//	   Matcher m = p.matcher(varid);
-//		while(m.find())
-//		{
-//			System.out.println("mgroup" + m.group());  // Tout le motif
-//			System.out.println("mgroup1" + m.group(1)); // Le contenu entre <b> et </b>
-//		}
-//}
    
 }
