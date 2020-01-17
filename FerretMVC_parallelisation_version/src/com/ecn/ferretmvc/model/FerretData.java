@@ -588,26 +588,7 @@ public class FerretData extends SwingWorker<Integer, String> {
                 int index = 0;  
                int espErrorCount = 0;
 
-				// Connecting to the local database containing RegulomeDB scores
-				//String url = "jdbc:postgresql://ser-info-03.ec-nantes.fr:5432/Ferret_data";
-				String url = "jdbc:postgresql://localhost:5432/regulome_score";
-				String user = "postgres";
-				//String user = "ferret";
-				String passwd = "Ferret.1";
-				Connection conn = null;
-				try {
-					Class.forName("org.postgresql.Driver");
-					conn = DriverManager.getConnection(url, user, passwd);
-				} catch (ClassNotFoundException e1) {
-					e1.printStackTrace();
-				} catch (SQLException e) {
-					e.printStackTrace();
-				}
-				// Verifying that connection is OK
-				if (conn == null) {
-					JOptionPane.showMessageDialog(null, "Connection to regulomeDB failed", "Warning",
-							JOptionPane.ERROR_MESSAGE);
-				}
+
                 String Varid = null;
               int count = 0;
               StockLineFreq = new HashMap<>();
@@ -871,11 +852,6 @@ public class FerretData extends SwingWorker<Integer, String> {
                     freqFile.delete();
                     return -3;
                 }
-				try {
-					conn.close();
-				} catch (SQLException e) {
-					e.printStackTrace();
-				}
             	if(htmlOutputFile) {
 					HtmlOutput html = new HtmlOutput(freqFile.getAbsolutePath(), freqFile.getName());
 					html.writeFile(annotFiles);
@@ -1399,6 +1375,7 @@ public class FerretData extends SwingWorker<Integer, String> {
             geneListIDBuffer = geneListIDBuffer.deleteCharAt(geneListIDBuffer.length() - 1);
             geneString = geneListIDBuffer.toString();
         } catch (ParserConfigurationException | IOException | SAXException e) {
+            e.printStackTrace();
             return null;
         }
 // retrieve gene information for geneString input
