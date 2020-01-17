@@ -3,6 +3,8 @@ package com.ecn.ferretmvc.model;
 import com.ecn.ferretmvc.main.FerretMain;
 import com.ecn.ferretmvc.model.FerretData;
 import com.ecn.ferretmvc.view.GUI;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.awt.Dimension;
 import java.beans.PropertyChangeEvent;
@@ -36,6 +38,11 @@ import javax.swing.JOptionPane;
 import javax.swing.SwingWorker;
 
 public class DownloadTheDataModel extends Observable {
+
+    /**
+     * The logger
+     */
+    private static final Logger LOG = LoggerFactory.getLogger(DownloadTheDataModel.class);
 
 	/**
 	 * the method locus_extr

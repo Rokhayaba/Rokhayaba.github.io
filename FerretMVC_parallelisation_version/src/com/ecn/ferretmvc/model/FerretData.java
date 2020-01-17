@@ -27,8 +27,6 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.text.DecimalFormat;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -48,6 +46,8 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -57,6 +57,11 @@ import java.util.concurrent.*;
 
 
 public class FerretData extends SwingWorker<Integer, String> {
+
+    /**
+     * The logger.
+     */
+    private static final Logger LOG = LoggerFactory.getLogger(FerretData.class);
 
     private Map<Integer, String> StockLineFreq;
 
@@ -381,7 +386,7 @@ public class FerretData extends SwingWorker<Integer, String> {
             try {
                 vcfWriteFile.createNewFile();
             } catch (IOException ex) {
-                Logger.getLogger(FerretData.class.getName()).log(Level.SEVERE, null, ex);
+                LOG.error("Could not create the vcf file", ex);
             }
             try (BufferedWriter vcfWrite = new BufferedWriter(new FileWriter(vcfWriteFile))) {
                 // Uses the web address from peopleSet, but I don't really see a problem with this
