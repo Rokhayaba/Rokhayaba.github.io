@@ -372,47 +372,47 @@ public class DownloadTheDataModel extends Observable {
    
 	 
  // Initializing output files and writers for each files
+        // Genename instead of geneString ?
 	 if (genelist.isEmpty() == false && positionlist.isEmpty() == false || geneString != null)
 	    {
     try {
-    	
-		PrintStream info = new PrintStream(new FileOutputStream(location + "_hla.info"));
-  	PrintStream map = new PrintStream(new FileOutputStream(location + "_hla.map"));
-  	PrintStream ped = new PrintStream(new FileOutputStream(location + "_hla.ped"));
   	
     File infofile = new File(location + "_hla.info");
     File mapfile = new File(location + "_hla.map");
     File pedfile =new File(location + "_hla.ped");
-PrintWriter infowriter = new PrintWriter(new BufferedWriter(new FileWriter(infofile)));
-PrintWriter mapwriter = new PrintWriter(new BufferedWriter(new FileWriter(mapfile)));
-PrintWriter pedwriter = new PrintWriter(new BufferedWriter(new FileWriter(pedfile)));
-if (genelist.isEmpty() == false && positionlist.isEmpty() == false) {    	    
-for(int i = 0; i < genelist.size(); i++)
-{
-	System.out.print("\t" + genelist.get(i) + "\t" + positionlist.get(i) + "\t");
-hla_extraction(gui,genelist.get(i),positionlist.get(i),infowriter,mapwriter,pedwriter);
-}
-infowriter.close ();
-mapwriter.close ();
-pedwriter.close();
-}
-if(Genename != null)
-{
-	System.out.print("\t" + Genename + "\t" + position);
-	hla_extraction(gui,Genename,position,infowriter,mapwriter,pedwriter);
-	 infowriter.close ();
-	 mapwriter.close ();
-	 pedwriter.close();
-	
-}
 
-if(infofile.length() == 0 && mapfile.length() == 0 && pedfile.length() == 0)
-{
+    PrintWriter infowriter = new PrintWriter(new BufferedWriter(new FileWriter(infofile)));
+    PrintWriter mapwriter = new PrintWriter(new BufferedWriter(new FileWriter(mapfile)));
+    PrintWriter pedwriter = new PrintWriter(new BufferedWriter(new FileWriter(pedfile)));
+    if (genelist.isEmpty() == false && positionlist.isEmpty() == false) {
+        for(int i = 0; i < genelist.size(); i++) {
+	        System.out.print("\t" + genelist.get(i) + "\t" + positionlist.get(i) + "\t");
+            hla_extraction(gui,genelist.get(i),positionlist.get(i),infowriter,mapwriter,pedwriter);
+        }
 
-infofile.delete();
-mapfile.delete();
-pedfile.delete();
-}
+        infowriter.close ();
+        mapwriter.close ();
+        pedwriter.close();
+    }
+
+    if(Genename != null) {
+	    System.out.print("\t" + Genename + "\t" + position);
+	    hla_extraction(gui,Genename,position,infowriter,mapwriter,pedwriter);
+
+	    infowriter.close ();
+	    mapwriter.close ();
+	    pedwriter.close();
+    }
+
+    if(infofile.length() == 0 && mapfile.length() == 0 && pedfile.length() == 0) {
+        infowriter.close ();
+        mapwriter.close ();
+        pedwriter.close();
+
+        infofile.delete();
+        mapfile.delete();
+        pedfile.delete();
+    }
 
     
     	    
