@@ -372,8 +372,7 @@ public class DownloadTheDataModel extends Observable {
    
 	 
  // Initializing output files and writers for each files
-        // Genename instead of geneString ?
-	 if (genelist.isEmpty() == false && positionlist.isEmpty() == false || geneString != null)
+	 if (!genelist.isEmpty() && !positionlist.isEmpty() || Genename != null)
 	    {
     try {
   	
