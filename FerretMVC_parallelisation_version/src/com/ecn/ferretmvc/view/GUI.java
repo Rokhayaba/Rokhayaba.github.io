@@ -249,7 +249,8 @@ public class GUI extends JFrame {
     final static fileOutput[] currFileOut = {fileOutput.ALL};
     final static annotOutput[] currAnnot = {annotOutput.NO};
     boolean htmlFile = true;
-    boolean downloadHaplo = true;
+    // should be false by default
+    boolean downloadHaplo = false;
     final static Boolean[] defaultHG = {true};
     final static double[] mafThreshold = {0.0};
     final static double[] mafThresholdMax = {0.5};
@@ -1063,7 +1064,7 @@ public class GUI extends JFrame {
                 eursub[i].setEnabled(false);
             }
         }
-        // A supprimer à la fin des tests
+        // A supprimer ï¿½ la fin des tests
         //eursub[2].setSelected(true);
 
         kgPopulationPanel.add(sanPanel);
