@@ -49,5 +49,5 @@ FerretMVC.iml
 ### Java ###
 *.class
 
-### Personal notes ###
-*.txt
+### Logs ###
+*.log
