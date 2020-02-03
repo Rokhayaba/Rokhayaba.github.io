@@ -55,6 +55,7 @@ FerretMVC_parallelisation_version.iml
 
 ### Metadata files ###
 */META-INF/*
+manifest.mf
 
 ### OS dependent files ###
 .DS_Store
