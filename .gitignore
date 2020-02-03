@@ -14,6 +14,7 @@ local.properties
 
 # Eclipse Core
 .project
+build.xml
 
 # JDT-specific (Eclipse Java Development Tools)
 .classpath
@@ -51,3 +52,6 @@ FerretMVC_parallelisation_version.iml
 
 ### Logs ###
 *.log
+
+### Metadata files ###
+*/META-INF/*
