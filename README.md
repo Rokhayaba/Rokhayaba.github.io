@@ -9,7 +9,7 @@ Cette version exploite le multi-threading pour améliorer les performances de Fe
 - Aller dans ``File > Open`` et sélectionner le dossier du projet
 - Dans le panneau ``Maven`` sur le côté droit de l'IDE, lancer la phase ``package``
 - Le jar exécutable se trouvera dans le dossier ``target`` de l'arborescence du projet
-- Il est possible de créer une configuration de lancement : sélectionner ``Maven`` puis dans le champ ``Command line`` rentrer ``clean package``
+- Il est possible de créer une configuration de lancement Maven : sélectionner ``Maven`` puis dans le champ ``Command line`` rentrer ``clean verify``
 
 
 ### Eclipse
@@ -24,7 +24,7 @@ Cette version exploite le multi-threading pour améliorer les performances de Fe
 
 #### Lancement du projet
 - Clic droit sur le projet, puis aller dans ``Run As > Maven Build``
-- Dans la fenêtre qui s'ouvre, donner un nom à la configuration et dans le champ ``goal``, rentrer ``test`` (ou toute phase venant après test, voir le fonctionnement de Maven)
+- Dans la fenêtre qui s'ouvre, donner un nom à la configuration et dans le champ ``goal``, rentrer ``verify`` (ou toute phase venant après verify, voir le fonctionnement de Maven)
 
 #### Créer un jar exécutable
 - Clic droit sur le projet, aller dans ``Run As > Maven Build``
