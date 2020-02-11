@@ -42,7 +42,7 @@
                 <artifactId>maven-assembly-plugin</artifactId>
                 <version>3.2.0</version>
                 <configuration>
-                    <finalName>Ferret-${version}</finalName>
+                    <finalName>Ferret ${project.version}</finalName>
                     <appendAssemblyId>false</appendAssemblyId>
                     <archive>
                         <manifest>
@@ -119,7 +119,7 @@
             <artifactId>haploview</artifactId>
             <version>1.0</version>
             <scope>system</scope>
-            <systemPath>${basedir}/lib/Haploview.jar</systemPath>
+            <systemPath>${project.basedir}/lib/Haploview.jar</systemPath>
         </dependency>
 
         <dependency>
@@ -127,7 +127,7 @@
             <artifactId>json-simple</artifactId>
             <version>1.1</version>
             <scope>system</scope>
-            <systemPath>${basedir}/lib/json-simple-1.1.jar</systemPath>
+            <systemPath>${project.basedir}/lib/json-simple-1.1.jar</systemPath>
         </dependency>
 
         <!-- Test libraries -->
