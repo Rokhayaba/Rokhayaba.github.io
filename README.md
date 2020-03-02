@@ -1,7 +1,6 @@
 # Ferret version initale
 
 ## Présentation
-Cette version exploite le multi-threading pour améliorer les performances de Ferret.
 
 
 ## Démarrer le projet
