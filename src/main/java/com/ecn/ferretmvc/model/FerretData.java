@@ -750,8 +750,8 @@ public class FerretData extends SwingWorker<Integer, String> {
 				String Varid = null;
 
 				// Connecting to the local database containing RegulomeDB scores
-				String url = "jdbc:postgresql://localhost:5432/regulome_score";
-				String user = "postgres";
+				String url = "jdbc:postgresql://ser-info-03.ec-nantes.fr:5432/Ferret_data";
+				String user = "ferret";
 				String passwd = "Ferret.1";
 				Connection conn = null;
 				try {
