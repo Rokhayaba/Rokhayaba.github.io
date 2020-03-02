@@ -31,7 +31,7 @@ public class GUI extends JFrame {
 
     //Declarations
     private String fileNameAndPath;
-    URL questionMarkURL = getClass().getResource("questionMark25.png");
+    URL questionMarkURL = getClass().getClassLoader().getResource("questionMark25.png");
     ImageIcon questionMark = new ImageIcon(questionMarkURL);
 
     // Races Selection Declarations	
