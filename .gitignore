@@ -46,7 +46,6 @@ nbproject/
 /out/
 .idea
 .settings
-FerretMVC_parallelisation_version.iml
 Ferret.iml
 
 # mpeltonen/sbt-idea plugin
