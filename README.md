@@ -1,31 +1,30 @@
-# Ferret MVC_02_08
+# Ferret  MVC_02_08
 
-## Présentation
+## Overview
 
 
-## Démarrer le projet
+## Launching the project
 ### IntelliJ IDEA
-- Aller dans ``File > Open`` et sélectionner le dossier du projet
-- Dans le panneau ``Maven`` sur le côté droit de l'IDE, lancer la phase ``package``
-- Le jar exécutable se trouvera dans le dossier ``target`` de l'arborescence du projet
-- Il est possible de créer une configuration de lancement depuis Maven : sélectionner ``Maven`` puis dans le champ ``Command line`` rentrer ``clean verify``
+- Go into ``File > Open`` and select the project directory
+- In the ``Maven`` panel on the right-hand side of the IDE, launch the ``package`` phase
+- The executable jar will be located into the ``target`` folder at the project root
 
 
 ### Eclipse
-#### Pré-requis
-- Avoir installé Maven : https://maven.apache.org/install.html
-- Avoir installé le plugin M2Eclipse ou autre intégration de Maven à Eclipse
-- Dans le cas contraire, aller dans ``` Help > Install new software > Add... ``` Dans le champ ``` Name ``` rentrer ``M2Eclipse`` et dans le champ ``Location`` rentrer ``http://download.eclipse.org/technology/m2e/releases``, puis suivre le guide d'installation
-- Utiliser l'installation locale de Maven au lieu de la version embarquée : ``Window > Preferences``, dérouler ``Maven`` puis aller dans ``Installation > Add``, sélectionner le dossier d'installation de Maven et cocher la case sur la nouvelle ligne. Appuyer sur ``Apply`` avant de quitter.
+#### Pre-requisite
+- Having installed Maven : https://maven.apache.org/install.html
+- Having installed the M2Eclipse plugin or any other Maven integration to Eclipse
+- If not, go into ``` Help > Install new software > Add... ```. In the ``` Name ``` field enter ``M2Eclipse`` and in the ``Location`` field enter ``http://download.eclipse.org/technology/m2e/releases``, then follow the installation guide.
+- Select the local Maven installation insted of the embedded one : ``Window > Preferences``, expand ``Maven`` then go into ``Installation > Add``, select the Maven installation folder and tick the box on the new line. Make sure to press ``Apply`` before leaving.
 
-#### Création du projet
-- Aller dans ``File > Import``, dérouler ``Maven`` et sélectionner ``Existing Maven Project``, choisir le dossier du projet (une ligne contenant ``/pom.xml com.ecn.ferretmvc:Ferret:3.0:jar`` doit apparaître) puis cliquer sur ``Finish``
+#### Create the project
+- Go into ``File > Import``, expand ``Maven`` and select ``Existing Maven Project``, choose your project directory (a line reading ``/pom.xml com.ecn.ferretmvc:Ferret:[version number]:jar`` should appear) then click on ``Finish``
 
-#### Lancement du projet
-- Clic droit sur le projet, puis aller dans ``Run As > Maven Build``
-- Dans la fenêtre qui s'ouvre, donner un nom à la configuration et dans le champ ``goal``, rentrer ``verify`` (ou toute phase venant après verify, voir le fonctionnement de Maven)
+#### Launching the project
+- Right click on the project name, then go into ``Run As > Maven Build``
+- In the window that just opened, give a name to the configuration and in the field ``goal``, enter ``verify`` (or any other phase coming after test, check the lifecycle for more details)
 
-#### Créer un jar exécutable
-- Clic droit sur le projet, aller dans ``Run As > Maven Build``
-- Dans le champ ``goal`` rentrer ``package`` puis exécuter la configuration de lancement
-- Le jar se trouvera dans le dossier ``target`` de l'arborescence du projet
+#### Create an executable jar
+- Right click on the project name and go into ``Run As > Maven Build``
+- In the ``goal`` field enter ``package`` then run the launch configuration
+- The executable jar will be located into the ``target`` folder at the project root
