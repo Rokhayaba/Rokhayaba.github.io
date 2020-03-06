@@ -1,4 +1,4 @@
-# Ferret version HLA 1
+# Ferret version HLA 2
 
 ## Overview
 
