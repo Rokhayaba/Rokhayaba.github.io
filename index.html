@@ -2,16 +2,6 @@
 <html>
 
   <head>
-    <!-- Global site tag (gtag.js) - Google Analytics -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=UA-115572101-1"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'UA-115572101-1');
-</script>
-
     <meta charset='utf-8'>
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
     <meta name="description" content="Ferret : A user-friendly tool to extract data from the 1000 Genomes Project">
@@ -31,10 +21,10 @@
 
           <h1 id="project_title">Ferret</h1>
           <h2 id="project_tagline">A user-friendly tool to extract data from the 1000 Genomes Project</h2>
-
+          
 
             <section id="downloads">
-              <a class="ferret_download_link" href="Ferret_v2.1.1.jar" onClick="ga('send', 'event', { eventCategory: 'download', eventAction: 'Click', eventLabel: 'Ferret_v2.1.1.jar'});">Download Ferret</a>
+              <a class="ferret_download_link" href="Ferret_v2.1.1.jar">Download Ferret</a>
             </section>
         </header>
     </div>
@@ -109,7 +99,7 @@
   <li>For a 1Mb locus, 14MB and 311MB disc space would be necessary for CEU and all individuals, respectively.</li>
 </ul>
 <img align="middle" src="images/DiscSpace.png" style="border:0px;margin-left:32px;margin-top:5px;margin-bottom:0px;" height="530"\>
-
+  
 <h3>
 <a id="contact" class="anchor" href="#contact" aria-hidden="true"><span class="octicon octicon-link"></span></a><strong>Contact</strong>
 </h3>
@@ -126,7 +116,7 @@
 <a id="download-ferret" class="anchor" href="#download-ferret" aria-hidden="true"><span class="octicon octicon-link"></span></a><strong>Download Ferret</strong>
 </h3>
 <section id="downloadsbis">
-    <a class="ferret_download_link" href="Ferret_v2.1.1.jar">Download Ferret</a>
+    <a class="ferret_download_link" href="Ferret_v2.1.1.jar">Download Ferret</a> 
 </section>
 <p>Ferret’s only pre-requisite is to have <a href="http://www.oracle.com/technetwork/java/javase/downloads/jre8-downloads-2133155.html">Java JRE 8</a> installed on your computer. In addition, Ferret requires <a href="http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html">Java JDK 8</a> to retrieve allelic frequencies from the Exome Sequencing Project.</p>
 
@@ -146,7 +136,7 @@
 <p>Ferret was updated due to the recent NCBI security switch to HTTPS only. </p>
 
 <hr>
-
+  
 <h5>
 <a id="2016-february-19" class="anchor" href="#2016-february-19" aria-hidden="true"><span class="octicon octicon-link"></span></a>2016, February 19</h5>
 
@@ -160,7 +150,7 @@
 </ul>
 
 <hr>
-
+  
 <h5>
 <a id="2015-august-12" class="anchor" href="#2015-august-12" aria-hidden="true"><span class="octicon octicon-link"></span></a>2015, August 12</h5>
 
@@ -228,7 +218,7 @@ First, make sure that you have the latest version installed on your computer (se
 </ul>
 
 <p><strong>2.    Which Java version does Ferret require to run on my computer?</strong><br>
-Ferret’s only pre-requisite is to have <a href="http://www.oracle.com/technetwork/java/javase/downloads/jre8-downloads-2133155.html">Java JRE 8</a> installed on your computer. In addition, if you are interested in querying the Exome Sequencing Project, be sure to also install <a href="http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html">Java JDK 8</a>. The Java installations require administrative privileges.
+Ferret’s only pre-requisite is to have <a href="http://www.oracle.com/technetwork/java/javase/downloads/jre8-downloads-2133155.html">Java JRE 8</a> installed on your computer. In addition, if you are interested in querying the Exome Sequencing Project, be sure to also install <a href="http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html">Java JDK 8</a>. The Java installations require administrative privileges. 
 For Linux/Ubuntu users, the Java JRE/JDK installation can be tricky but you can find help online from the active Linux community (like <a href="https://www.digitalocean.com/community/tutorials/how-to-install-java-on-ubuntu-with-apt-get">here</a> for Debian Linux, which includes Ubuntu).</p>
 
 <p><strong>3.    Which Ferret version do I have on my computer? How do I get the latest Ferret update?</strong><br>
@@ -257,7 +247,7 @@ You have two options:</p>
 <ul style="list-style-type:none;margin-top:-15px;">
   <li>1. You can enter manually the list of genes separated by a comma in the input box;</li>
   <li>2. You can load a comma-delimited .csv, a tab-delimited .tab or .tsv, or a space-delimited .txt file containing the list of genes. A carriage return can also be used as a delimiter for all file types.</li>
-</ul>
+</ul>  
 <p style="margin-top:-15px;"><em>Important:</em> do not forget to indicate if your input corresponds to gene name or gene ID.</p>
 
 <p><strong>10.    How do I input more than one SNP?</strong><br>
@@ -265,7 +255,7 @@ You have two options:</p>
 <ul style="list-style-type:none;margin-top:-15px;">
   <li>1. You can enter manually the list of SNPs separated by a comma in the input box;</li>
   <li>2. You can load a comma-delimited .csv, a tab-delimited .tab or .tsv, or a space-delimited .txt file containing the list of SNPs. A carriage return can also be used as a delimiter for all file types.</li>
-</ul>
+</ul>  
 <p style="margin-top:-15px;"><em>Important:</em> indicate only the unique rs number without the letters ‘rs’ (<em>e.g.</em> 2395029 for rs2395029).</p>
 
 <p><strong>11.   What 1000 Genomes version does Ferret query?</strong><br>
@@ -323,7 +313,7 @@ For gene coordinates, Ferret queries the curated and non-redundant NCBI’s RefS
       </footer>
     </div>
 
-
+    
 
   </body>
 </html>
