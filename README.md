@@ -2,6 +2,11 @@
 
 ## Overview
 
+## New features
+Ferret 2.3 adds a new annotation. Select ```Advanced annotations``` in the ```Settings``` menu to find the [RegulomeDB](https://regulomedb.org) score in the .txt output file.
+
+You can also choose to output an html file to view the .txt file's content in a fancier way. Open it with your Internet browser to view the result in a table, with colours and links to the sources of the various scores.
+
 
 ## Launching the project
 ### IntelliJ IDEA
