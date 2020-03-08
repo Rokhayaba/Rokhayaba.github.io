@@ -1,7 +1,7 @@
-# Ferret version parallelisation
+# Ferret 4.0 reworked version
 
 ## Overview
-This version takes advantage of multi-threading to improve performances.
+This version is a complete rework of Ferret's code, including *WIP*
 
 
 ## Launching the project
